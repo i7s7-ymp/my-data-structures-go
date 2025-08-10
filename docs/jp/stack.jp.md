@@ -166,3 +166,185 @@
 | **メモリ使用量**     | 低い     | 低い   | 低い     | 中程度     |
 
 スタックは、LIFO の性質を活かした処理に特化したデータ構造で、特定の用途では非常に効率的です。関数呼び出し、式の評価、アルゴリズムの実装など、多くの場面で基本的かつ重要な役割を果たします。
+
+# Go でのスタックの利用方法
+
+Go にはスタックの組み込み型が存在しないため、配列やスライスを使ってスタックを自前で実装する必要があります。
+
+## スライスを使ったスタックの実装例
+
+```go
+package main
+
+import "fmt"
+
+// スタック構造体
+type Stack struct {
+    data []int
+}
+
+// Push: スタックに要素を追加
+func (s *Stack) Push(value int) {
+    s.data = append(s.data, value)
+}
+
+// Pop: スタックから要素を取り出す
+func (s *Stack) Pop() (int, bool) {
+    if len(s.data) == 0 {
+        return 0, false // スタックが空の場合
+    }
+    value := s.data[len(s.data)-1]
+    s.data = s.data[:len(s.data)-1]
+    return value, true
+}
+
+// Peek: スタックのトップ要素を参照
+func (s *Stack) Peek() (int, bool) {
+    if len(s.data) == 0 {
+        return 0, false // スタックが空の場合
+    }
+    return s.data[len(s.data)-1], true
+}
+
+// IsEmpty: スタックが空かどうかを確認
+func (s *Stack) IsEmpty() bool {
+    return len(s.data) == 0
+}
+
+// Size: スタックの要素数を取得
+func (s *Stack) Size() int {
+    return len(s.data)
+}
+
+func main() {
+    stack := &Stack{}
+
+    // Push操作
+    stack.Push(10)
+    stack.Push(20)
+    stack.Push(30)
+
+    // Peek操作
+    if top, ok := stack.Peek(); ok {
+        fmt.Println("トップ要素:", top) // トップ要素: 30
+    }
+
+    // Pop操作
+    for !stack.IsEmpty() {
+        if value, ok := stack.Pop(); ok {
+            fmt.Println("取り出した要素:", value)
+        }
+    }
+
+    // スタックが空か確認
+    fmt.Println("スタックが空:", stack.IsEmpty()) // スタックが空: true
+}
+```
+
+### 実装のポイント
+
+- **スライスを使用**: スタックのデータを保持するためにスライスを使用。
+- **O(1)操作**: `append` とスライスの切り取り操作により、`Push` と `Pop` は O(1) で実行可能。
+- **エラーハンドリング**: スタックが空の場合に適切なエラー処理を実装。
+
+## 連結リストを利用したスタックの実装
+
+連結リストを利用することで、スタックのサイズを動的に変更できるようになります。この方法では、ノード構造体を定義し、スタックのトップを指すポインタを管理します。
+
+```go
+package main
+
+import "fmt"
+
+// ノード構造体
+type Node struct {
+    value int
+    next  *Node
+}
+
+// スタック構造体
+type LinkedListStack struct {
+    top  *Node
+    size int
+}
+
+// Push: スタックに要素を追加
+func (s *LinkedListStack) Push(value int) {
+    newNode := &Node{value: value, next: s.top}
+    s.top = newNode
+    s.size++
+}
+
+// Pop: スタックから要素を取り出す
+func (s *LinkedListStack) Pop() (int, bool) {
+    if s.top == nil {
+        return 0, false // スタックが空の場合
+    }
+    value := s.top.value
+    s.top = s.top.next
+    s.size--
+    return value, true
+}
+
+// Peek: スタックのトップ要素を参照
+func (s *LinkedListStack) Peek() (int, bool) {
+    if s.top == nil {
+        return 0, false // スタックが空の場合
+    }
+    return s.top.value, true
+}
+
+// IsEmpty: スタックが空かどうかを確認
+func (s *LinkedListStack) IsEmpty() bool {
+    return s.size == 0
+}
+
+// Size: スタックの要素数を取得
+func (s *LinkedListStack) Size() int {
+    return s.size
+}
+
+func main() {
+    stack := &LinkedListStack{}
+
+    // Push操作
+    stack.Push(10)
+    stack.Push(20)
+    stack.Push(30)
+
+    // Peek操作
+    if top, ok := stack.Peek(); ok {
+        fmt.Println("トップ要素:", top) // トップ要素: 30
+    }
+
+    // Pop操作
+    for !stack.IsEmpty() {
+        if value, ok := stack.Pop(); ok {
+            fmt.Println("取り出した要素:", value)
+        }
+    }
+
+    // スタックが空か確認
+    fmt.Println("スタックが空:", stack.IsEmpty()) // スタックが空: true
+}
+```
+
+### 実装のポイント
+
+- **動的サイズ**: 連結リストを使用することで、スタックのサイズを動的に変更可能。
+- **メモリ効率**: 必要な分だけメモリを使用するため、メモリの無駄が少ない。
+- **ポインタ管理**: ノード間の接続をポインタで管理するため、実装がやや複雑。
+
+## 配列ベースと連結リストベースの比較
+
+| 特徴                        | 配列ベースのスタック     | 連結リストベースのスタック |
+| --------------------------- | ------------------------ | -------------------------- |
+| **サイズ変更**              | 固定サイズまたはリサイズ | 動的サイズ                 |
+| **メモリ効率**              | 余分なメモリが必要       | 必要な分だけ使用           |
+| **実装の複雑さ**            | 簡単                     | やや複雑                   |
+| **キャッシュ効率**          | 高い                     | 低い                       |
+| **操作の計算量 (Push/Pop)** | O(1)                     | O(1)                       |
+
+---
+
+連結リストを利用したスタックは、動的なサイズ変更が必要な場合や、メモリ効率を重視する場合に適しています。一方、配列ベースのスタックは、実装が簡単でキャッシュ効率が高いため、固定サイズのスタックを扱う場合に適しています。
