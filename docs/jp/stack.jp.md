@@ -12,78 +12,237 @@
 - **順序性**: 要素の挿入順序を逆順で取り出す
 - **制限されたアクセス**: 中間要素への直接アクセス不可
 
-## スタックの概念図
-
-```
-    ↓ push(要素の追加)・↑ pop（要素の取り出し）
-┌─────────┐
-│    4    │ ← top（トップ）
-├─────────┤
-│    3    │
-├─────────┤
-│    2    │
-├─────────┤
-│    1    │ ← bottom（ボトム）
-└─────────┘
-
-```
-
 # 行える処理
 
-| **機能**      | **説明**                                 | **計算量**      | **戻り値**            | **得意/苦手** | **補足（その他）**                                                                                 |
-| ------------- | ---------------------------------------- | --------------- | --------------------- | ------------- | -------------------------------------------------------------------------------------------------- |
-| Push          | スタックの最上部に新しい要素を追加       | O(1)            | なし（void）          | ✅            | トップへの操作のみなので高速。                                                                     |
-| Pop           | スタックの最上部から要素を取り出して削除 | O(1)            | 取り出した要素        | ✅            | トップへの操作のみなので高速。å 他の要素への影響なし。空の場合はエラー。                           |
-| Peek/Top      | スタックの最上部の要素を削除せずに参照   | O(1)            | 最上部の要素          | ✅            | トップへの操作のみなので高速。インデックス計算や検索が不要。空の場合はエラー。                     |
-| IsEmpty       | スタックが空かどうかを確認               | O(1)            | bool（空なら true）   | ✅            | 全要素見ないといけないから、最大で n かかるのでは？                                                |
-| Size          | スタック内の要素数を取得                 | O(1)            | int（要素数）         | ✅            | 全要素見ないといけないから、最大で n かかるのでは？                                                |
-| Clear         | スタックのすべての要素を削除             | O(n)または O(1) | なし（void）          | -             | 実装による。                                                                                       |
-| IsFull        | 固定サイズスタックが満杯かどうかを確認   | O(1)            | bool（満杯なら true） | -             | 配列ベースの固定サイズスタックのみ適用。全要素見ないといけないから、最大で n かかるのでは？        |
-| 中間アクセス  | トップ以外の要素にアクセス               | O(n)            | 該当要素              | ❌            | トップ以外の要素にアクセスするには、上の要素をすべて取り出す必要がある。ランダムアクセスが不可能。 |
-| 検索          | 特定の値を持つ要素を検索                 | O(n)            | 該当要素または bool   | ❌            | 特定の値を持つ要素を探すには、順次 pop 操作が必要。検索後にスタックを元の状態に戻すのが困難。      |
-| 中間挿入/削除 | トップ以外の位置での挿入・削除           | O(n)            | なしまたは該当要素    | ❌            | 目的の位置まで要素を取り出し、操作後に戻す必要。スタックの基本概念に反する操作。                   |
-| 全要素表示    | スタックの全要素を確認                   | O(n)            | すべての要素          | ❌            | すべての要素を確認するには、スタックを破壊するか別の構造が必要。非破壊的な走査が困難。             |
-| ボトム操作    | 最下部の要素へのアクセスや操作           | O(n)            | 最下部の要素          | ❌            | すべての上位要素を一時的に退避する必要。                                                           |
+| 機能         | 説明                                   | 計算量          | 戻り値              | 得意/苦手 | 補足（その他）                                   |
+| ------------ | -------------------------------------- | --------------- | ------------------- | --------- | ------------------------------------------------ |
+| Push         | スタックの末尾に新しい要素を追加       | O(1)            | なし（void）        | ✅        | 順序を保ちながら効率的に追加可能。               |
+| Pop          | スタックの末尾から要素を取り出して削除 | O(1)            | 取り出した要素      | ✅        | 他の要素への影響なし。空の場合はエラー。         |
+| Peek/Top     | スタックの末尾要素を削除せずに参照     | O(1)            | 末尾の要素          | ✅        | インデックス計算や検索が不要。空の場合はエラー。 |
+| IsEmpty      | スタックが空かどうかを確認             | O(1)            | bool（空なら true） | ✅        |                                                  |
+| Size         | スタック内の要素数を取得               | O(1)            | int（要素数）       | ✅        |                                                  |
+| Clear        | スタックのすべての要素を削除           | O(n)または O(1) | なし（void）        | -         | 実装による。                                     |
+| 中間アクセス | 中間要素にアクセス                     | O(n)            | 該当要素            | ❌        | 中間要素への直接アクセスは非効率。               |
 
 # 注意点
 
-## サイズ制限のない成長
+1. **サイズ制限**: 固定サイズのスタックを使用する場合、サイズを超えるとエラーが発生します。
+2. **空の状態**: スタックが空の状態で `Pop` や `Peek` を呼び出すとエラーになるため、事前に空かどうかを確認する必要があります。
+3. **動的サイズ変更**: 動的サイズのスタックを使用する場合、メモリ再割り当てが発生する可能性があります。
+4. **スタックオーバーフロー**: 動的サイズのスタックの場合、メモリ不足や再起の深すぎる呼び出しによってスタックオーバーフローが発生する可能性がある。サイズ変更の制限を設ける必要がある。
 
-- **メモリ**: 無制限に成長する可能性
-- **スタックオーバーフロー**: メモリ不足や再帰の深すぎる呼び出し
-- **制御**: 成長を制限する仕組みが必要
+# 実装方法
 
-# スタックの実装方法
+スタックは、配列、スライス、または連結リストを使用して実装できます。
 
-## 配列ベースの実装
+## 配列・スライス・連結リストによる実装の比較
 
-トップの位置をインデックスで管理する。
+| 実装方法       | メリット                                                                                                                     | デメリット                                                                                           |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **配列**       | - メモリが連続しているためキャッシュ効率が高い<br>- 実装が簡単で高速<br>- 再帰処理の深さ制限や固定サイズのバッファ管理に有用 | - サイズが固定されており、事前に適切なサイズを決める必要がある<br>- サイズ超過時にエラーが発生       |
+| **スライス**   | - 動的にサイズを変更可能<br>- 標準ライブラリの`append`を活用できるため実装が簡単                                             | - サイズ変更時にメモリ再割り当てが発生し、オーバーヘッドが増える<br>- メモリの断片化が発生する可能性 |
+| **連結リスト** | - サイズが動的に変化するためメモリ効率が良い<br>- 要素の追加・削除が O(1)                                                    | - メモリが非連続のためキャッシュ効率が低い<br>- 各ノードにポインタを持つためメモリ使用量が増える     |
 
-### 利点
+## 配列を使用したスタックの実装
 
-- シンプルな実装
-- メモリ効率が良い
-- キャッシュ効率が高い
+- **固定サイズ**: 配列を使用するため、スタックのサイズは固定。
+- **メモリ効率**: 必要な分だけメモリを使用するため、メモリの無駄が少ない。
+- **インデックス管理**: スタックのトップをインデックスで管理するため、実装が簡単。
 
-### 欠点
+```go
+package main
 
-- 固定サイズ（事前にサイズを決める必要がある）
-- サイズ変更が困難
-- メモリの無駄が発生する可能性
+import "fmt"
 
-## 連結リストベースの実装
+// スタック構造体
+type ArrayStack struct {
+    data []int
+    top  int
+}
 
-### 利点
+// 新しいスタックを作成
+func NewArrayStack(size int) *ArrayStack {
+    return &ArrayStack{
+        data: make([]int, size),
+        top:  -1,
+    }
+}
 
-- 動的サイズ（メモリが許す限り拡張可能）
-- メモリ効率が良い（必要な分だけメモリを使用する）
-- サイズ制限なし
+// Push: 要素を追加
+func (s *ArrayStack) Push(value int) bool {
+    if s.top == len(s.data)-1 {
+        return false // スタックが満杯
+    }
+    s.top++
+    s.data[s.top] = value
+    return true
+}
 
-### 欠点
+// Pop: 要素を取り出す
+func (s *ArrayStack) Pop() (int, bool) {
+    if s.top == -1 {
+        return 0, false // スタックが空
+    }
+    value := s.data[s.top]
+    s.top--
+    return value, true
+}
 
-- ポインタ管理が必要
-- 若干のメモリオーバーヘッド
-- キャッシュ効率が劣る場合がある
+// Peek: 末尾要素を参照
+func (s *ArrayStack) Peek() (int, bool) {
+    if s.top == -1 {
+        return 0, false
+    }
+    return s.data[s.top], true
+}
+
+func main() {
+    stack := NewArrayStack(3)
+
+    // Push操作
+    stack.Push(10)
+    stack.Push(20)
+    stack.Push(30)
+
+    // Pop操作
+    if value, ok := stack.Pop(); ok {
+        fmt.Println("取り出した要素:", value) // 取り出した要素: 30
+    }
+
+    fmt.Println("スタックの状態:", stack.data[:stack.top+1]) // スタックの状態: [10 20]
+}
+```
+
+## スライスを使用したスタックの実装
+
+- **スライスを使用**: スタックのデータを保持するためにスライスを使用。
+- **O(1)操作**: `append` とスライスの切り取り操作により、`Push` と `Pop` は O(1) で実行可能。
+- **エラーハンドリング**: スタックが空の場合に適切なエラー処理を実装。
+
+```go
+package main
+
+import "fmt"
+
+// スタック構造体
+type SliceStack struct {
+    data []int
+}
+
+// 新しいスタックを作成
+func NewSliceStack() *SliceStack {
+    return &SliceStack{
+        data: []int{},
+    }
+}
+
+// Push: 要素を追加
+func (s *SliceStack) Push(value int) {
+    s.data = append(s.data, value)
+}
+
+// Pop: 要素を取り出す
+func (s *SliceStack) Pop() (int, bool) {
+    if len(s.data) == 0 {
+        return 0, false // スタックが空
+    }
+    value := s.data[len(s.data)-1]
+    s.data = s.data[:len(s.data)-1]
+    return value, true
+}
+
+// Peek: 末尾要素を参照
+func (s *SliceStack) Peek() (int, bool) {
+    if len(s.data) == 0 {
+        return 0, false
+    }
+    return s.data[len(s.data)-1], true
+}
+
+func main() {
+    stack := NewSliceStack()
+
+    // Push操作
+    stack.Push(10)
+    stack.Push(20)
+    stack.Push(30)
+
+    // Pop操作
+    if value, ok := stack.Pop(); ok {
+        fmt.Println("取り出した要素:", value) // 取り出した要素: 30
+    }
+
+    fmt.Println("スタックの状態:", stack.data) // スタックの状態: [10 20]
+}
+```
+
+## 連結リストを使用したスタックの実装
+
+- **動的サイズ**: 連結リストを使用することで、スタックのサイズを動的に変更可能。
+- **メモリ効率**: 必要な分だけメモリを使用するため、メモリの無駄が少ない。
+- **ポインタ管理**: ノード間の接続をポインタで管理するため、実装がやや複雑。
+
+```go
+package main
+
+import "fmt"
+
+// ノード構造体
+type Node struct {
+    value int
+    next  *Node
+}
+
+// スタック構造体
+type LinkedListStack struct {
+    top *Node
+}
+
+// 新しいスタックを作成
+func NewLinkedListStack() *LinkedListStack {
+    return &LinkedListStack{}
+}
+
+// Push: 要素を追加
+func (s *LinkedListStack) Push(value int) {
+    newNode := &Node{value: value, next: s.top}
+    s.top = newNode
+}
+
+// Pop: 要素を取り出す
+func (s *LinkedListStack) Pop() (int, bool) {
+    if s.top == nil {
+        return 0, false // スタックが空
+    }
+    value := s.top.value
+    s.top = s.top.next
+    return value, true
+}
+
+// Peek: 末尾要素を参照
+func (s *LinkedListStack) Peek() (int, bool) {
+    if s.top == nil {
+        return 0, false
+    }
+    return s.top.value, true
+}
+
+func main() {
+    stack := NewLinkedListStack()
+
+    // Push操作
+    stack.Push(10)
+    stack.Push(20)
+    stack.Push(30)
+
+    // Pop操作
+    if value, ok := stack.Pop(); ok {
+        fmt.Println("取り出した要素:", value) // 取り出した要素: 30
+    }
+
+    fmt.Println("スタックの状態: 連結リストのため直接表示不可")
+}
+```
 
 # スタックの応用例
 
@@ -154,187 +313,3 @@
 | **ランダムアクセス** | O(n)     | O(n)   | O(1)     | O(n)       |
 | **検索**             | O(n)     | O(n)   | O(n)     | O(n)       |
 | **メモリ使用量**     | 低い     | 低い   | 低い     | 中程度     |
-
-スタックは、LIFO の性質を活かした処理に特化したデータ構造で、特定の用途では非常に効率的です。関数呼び出し、式の評価、アルゴリズムの実装など、多くの場面で基本的かつ重要な役割を果たします。
-
-# Go でのスタックの利用方法
-
-Go にはスタックの組み込み型が存在しないため、配列やスライスを使ってスタックを自前で実装する必要があります。
-
-## スライスを使ったスタックの実装例
-
-```go
-package main
-
-import "fmt"
-
-// スタック構造体
-type Stack struct {
-    data []int
-}
-
-// Push: スタックに要素を追加
-func (s *Stack) Push(value int) {
-    s.data = append(s.data, value)
-}
-
-// Pop: スタックから要素を取り出す
-func (s *Stack) Pop() (int, bool) {
-    if len(s.data) == 0 {
-        return 0, false // スタックが空の場合
-    }
-    value := s.data[len(s.data)-1]
-    s.data = s.data[:len(s.data)-1]
-    return value, true
-}
-
-// Peek: スタックのトップ要素を参照
-func (s *Stack) Peek() (int, bool) {
-    if len(s.data) == 0 {
-        return 0, false // スタックが空の場合
-    }
-    return s.data[len(s.data)-1], true
-}
-
-// IsEmpty: スタックが空かどうかを確認
-func (s *Stack) IsEmpty() bool {
-    return len(s.data) == 0
-}
-
-// Size: スタックの要素数を取得
-func (s *Stack) Size() int {
-    return len(s.data)
-}
-
-func main() {
-    stack := &Stack{}
-
-    // Push操作
-    stack.Push(10)
-    stack.Push(20)
-    stack.Push(30)
-
-    // Peek操作
-    if top, ok := stack.Peek(); ok {
-        fmt.Println("トップ要素:", top) // トップ要素: 30
-    }
-
-    // Pop操作
-    for !stack.IsEmpty() {
-        if value, ok := stack.Pop(); ok {
-            fmt.Println("取り出した要素:", value)
-        }
-    }
-
-    // スタックが空か確認
-    fmt.Println("スタックが空:", stack.IsEmpty()) // スタックが空: true
-}
-```
-
-### 実装のポイント
-
-- **スライスを使用**: スタックのデータを保持するためにスライスを使用。
-- **O(1)操作**: `append` とスライスの切り取り操作により、`Push` と `Pop` は O(1) で実行可能。
-- **エラーハンドリング**: スタックが空の場合に適切なエラー処理を実装。
-
-## 連結リストを利用したスタックの実装
-
-連結リストを利用することで、スタックのサイズを動的に変更できるようになります。この方法では、ノード構造体を定義し、スタックのトップを指すポインタを管理します。
-
-```go
-package main
-
-import "fmt"
-
-// ノード構造体
-type Node struct {
-    value int
-    next  *Node
-}
-
-// スタック構造体
-type LinkedListStack struct {
-    top  *Node
-    size int
-}
-
-// Push: スタックに要素を追加
-func (s *LinkedListStack) Push(value int) {
-    newNode := &Node{value: value, next: s.top}
-    s.top = newNode
-    s.size++
-}
-
-// Pop: スタックから要素を取り出す
-func (s *LinkedListStack) Pop() (int, bool) {
-    if s.top == nil {
-        return 0, false // スタックが空の場合
-    }
-    value := s.top.value
-    s.top = s.top.next
-    s.size--
-    return value, true
-}
-
-// Peek: スタックのトップ要素を参照
-func (s *LinkedListStack) Peek() (int, bool) {
-    if s.top == nil {
-        return 0, false // スタックが空の場合
-    }
-    return s.top.value, true
-}
-
-// IsEmpty: スタックが空かどうかを確認
-func (s *LinkedListStack) IsEmpty() bool {
-    return s.size == 0
-}
-
-// Size: スタックの要素数を取得
-func (s *LinkedListStack) Size() int {
-    return s.size
-}
-
-func main() {
-    stack := &LinkedListStack{}
-
-    // Push操作
-    stack.Push(10)
-    stack.Push(20)
-    stack.Push(30)
-
-    // Peek操作
-    if top, ok := stack.Peek(); ok {
-        fmt.Println("トップ要素:", top) // トップ要素: 30
-    }
-
-    // Pop操作
-    for !stack.IsEmpty() {
-        if value, ok := stack.Pop(); ok {
-            fmt.Println("取り出した要素:", value)
-        }
-    }
-
-    // スタックが空か確認
-    fmt.Println("スタックが空:", stack.IsEmpty()) // スタックが空: true
-}
-```
-
-### 実装のポイント
-
-- **動的サイズ**: 連結リストを使用することで、スタックのサイズを動的に変更可能。
-- **メモリ効率**: 必要な分だけメモリを使用するため、メモリの無駄が少ない。
-- **ポインタ管理**: ノード間の接続をポインタで管理するため、実装がやや複雑。
-
-## 配列ベースと連結リストベースの比較
-
-| 特徴                        | 配列ベースのスタック     | 連結リストベースのスタック |
-| --------------------------- | ------------------------ | -------------------------- |
-| **サイズ変更**              | 固定サイズまたはリサイズ | 動的サイズ                 |
-| **メモリ効率**              | 余分なメモリが必要       | 必要な分だけ使用           |
-| **実装の複雑さ**            | 簡単                     | やや複雑                   |
-| **キャッシュ効率**          | 高い                     | 低い                       |
-| **操作の計算量 (Push/Pop)** | O(1)                     | O(1)                       |
-
----
-
-連結リストを利用したスタックは、動的なサイズ変更が必要な場合や、メモリ効率を重視する場合に適しています。一方、配列ベースのスタックは、実装が簡単でキャッシュ効率が高いため、固定サイズのスタックを扱う場合に適しています。
