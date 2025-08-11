@@ -73,6 +73,26 @@ func main() {
 }
 ```
 
+### 値型の特性
+
+```go
+func modifyArray(arr [3]int) {
+    arr[0] = 100  // 元の配列は変更されない（コピーが渡される）
+}
+
+func main() {
+    original := [3]int{1, 2, 3}
+    modifyArray(original)
+    fmt.Println(original) // [1 2 3] - 変更されない
+}
+```
+
+### Go 特有の注意点
+
+1. **型の厳密性**: `[3]int` と `[5]int` は完全に異なる型として扱われる
+2. **関数渡しのコスト**: 大きな配列を関数に渡すと全要素がコピーされ、パフォーマンスに影響
+3. **初期化**: 宣言時に明示的にサイズを指定する必要がある
+
 ## 静的配列のカスタム実装
 
 Go の組み込み配列を使用せずに静的配列を実装する場合、固定サイズの構造体を使用します。
@@ -128,6 +148,147 @@ slice = append(slice[:index], append([]int{99}, slice[index:]...)...)
 
 // 中間からの削除 (O(n))
 slice = append(slice[:index], slice[index+1:]...)
+```
+
+### 内部構造
+
+```go
+// スライスは内部的に以下の構造を持つ
+type slice struct {
+    ptr unsafe.Pointer // 配列への参照
+    len int           // 長さ
+    cap int           // 容量
+}
+```
+
+### 容量（Capacity）の概念
+
+```go
+s := make([]int, 3, 5)  // 長さ3、容量5のスライス
+fmt.Println(len(s))     // 3
+fmt.Println(cap(s))     // 5
+
+// 容量内であれば再割り当てなしで要素追加可能
+```
+
+### nil スライスと空スライス
+
+```go
+var nilSlice []int              // nil スライス
+emptySlice := []int{}           // 空スライス
+madeSlice := make([]int, 0)     // make で作成した空スライス
+
+fmt.Println(nilSlice == nil)    // true
+fmt.Println(emptySlice == nil)  // false
+fmt.Println(madeSlice == nil)   // false
+```
+
+### スライスの共有
+
+```go
+original := []int{1, 2, 3, 4, 5}
+slice1 := original[1:3]  // [2, 3]
+slice2 := original[2:4]  // [3, 4]
+
+slice1[1] = 99
+fmt.Println(original)    // [1 2 99 4 5] - 元の配列も変更される
+fmt.Println(slice2)      // [99 4] - slice2も影響を受ける
+```
+
+### append の挙動
+
+```go
+s1 := []int{1, 2, 3}
+s2 := s1
+
+s1 = append(s1, 4)  // 容量が足りない場合、新しい配列が作成される
+
+// s1とs2が異なる配列を参照する可能性がある
+```
+
+### Go 特有の注意点
+
+1. **nil スライスの操作**:
+
+```go
+var s []int
+s = append(s, 1)  // OK: nil スライスにも append 可能
+// s[0] = 1       // パニック: nil スライスにはインデックスアクセス不可
+```
+
+2. **スライスの比較**:
+
+```go
+s1 := []int{1, 2, 3}
+s2 := []int{1, 2, 3}
+// fmt.Println(s1 == s2)  // コンパイルエラー: スライスは直接比較できない
+fmt.Println(s1 == nil)   // OK: nil との比較は可能
+```
+
+3. **メモリリーク**:
+
+```go
+func getSmallSlice() []int {
+    largeSlice := make([]int, 1000000)
+    // 小さな部分だけを返すが、大きな配列への参照が残る
+    return largeSlice[:5]  // メモリリークの可能性
+}
+
+
+// 対処法: コピーを作成
+func getSmallSliceSafe() []int {
+    largeSlice := make([]int, 1000000)
+    smallSlice := make([]int, 5)
+    copy(smallSlice, largeSlice[:5])
+    return smallSlice
+}
+```
+
+4. **関数への渡し方**:
+
+```go
+// スライスを変更する関数
+func modifySliceContent(s []int) {
+    s[0] = 100  // 元のスライスの内容が変更される
+}
+
+func modifySliceLength(s []int) {
+    s = append(s, 4)  // 元のスライスの長さは変更されない
+}
+
+// スライス自体を変更したい場合はポインタを使用
+func modifySliceItself(s *[]int) {
+    *s = append(*s, 4)  // 元のスライスの長さも変更される
+}
+```
+
+### パフォーマンスの考慮事項
+
+1. **append の効率性**:
+
+```go
+// 非効率: 容量を考慮しない
+s := []int{}
+for i := 0; i < 1000; i++ {
+    s = append(s, i)  // 何度も再割り当てが発生
+}
+
+// 効率的: 事前に容量を確保
+s := make([]int, 0, 1000)
+for i := 0; i < 1000; i++ {
+    s = append(s, i)  // 再割り当てが発生しない
+}
+```
+
+2. **copy vs append**:
+
+```go
+// copy を使用（より効率的）
+dst := make([]int, len(src))
+copy(dst, src)
+
+// append を使用
+dst := append([]int(nil), src...)
 ```
 
 ## 動的配列のカスタム実装
