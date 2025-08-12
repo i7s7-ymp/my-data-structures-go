@@ -1,0 +1,1284 @@
+# Set（集合）とは
+
+Set（集合）は、**重複のない要素**の集まりを管理するデータ構造です。数学の集合論に基づいており、同じ要素を複数回含むことはできません。要素の順序は一般的に保証されませんが、要素の存在確認、追加、削除を効率的に行うことができます。
+
+**このデータ構造の最大の利点は、重複排除と高速な要素検索、および集合演算（和集合、積集合、差集合）を効率的に実行できる点です。**
+
+# Set の構成要素
+
+## 基本要素
+
+- **要素（Element）**: 集合に含まれる個々のデータ項目
+- **一意性制約（Uniqueness Constraint）**: 同じ要素は一つまでしか存在できない
+- **メンバーシップ（Membership）**: 要素が集合に属するかどうかの関係
+- **カーディナリティ（Cardinality）**: 集合に含まれる要素の総数
+- **空集合（Empty Set）**: 要素を一つも含まない集合
+- **全体集合（Universal Set）**: 考慮対象となるすべての要素を含む集合
+
+## 操作の分類
+
+- **基本操作**: 追加、削除、検索、サイズ取得
+- **集合演算**: 和集合、積集合、差集合、対称差集合
+- **関係演算**: 部分集合、上位集合、等価性の判定
+- **変換操作**: 配列やスライスへの変換
+
+# Set の種類
+
+## Hash Set（ハッシュ集合）
+
+- ハッシュテーブルベースの実装
+- 平均的に O(1)の操作時間
+- 要素の順序は保証されない
+- 用途: 一般的な集合操作
+
+## Tree Set（木構造集合）
+
+- 平衡二分探索木ベースの実装
+- O(log n)の操作時間
+- 要素がソートされた順序で維持される
+- 用途: 順序が重要な場合
+
+## Linked Hash Set（連結ハッシュ集合）
+
+- ハッシュテーブル + 連結リスト
+- 挿入順序を保持
+- ハッシュ集合の性能と順序保持を両立
+- 用途: 挿入順序を保持したい場合
+
+## Bit Set（ビット集合）
+
+- ビット配列による実装
+- 整数の小さな範囲に特化
+- 非常に高速でメモリ効率が良い
+- 用途: 整数の集合、フラグ管理
+
+## Immutable Set（不変集合）
+
+- 一度作成すると変更できない集合
+- 関数型プログラミングで利用
+- スレッドセーフ
+- 用途: 並行処理、関数型設計
+
+# Set の特徴
+
+- **一意性保証**: 重複要素の自動排除
+- **高速検索**: 要素の存在確認が効率的
+- **集合演算**: 数学的な集合操作をサポート
+- **メモリ効率**: 重複がないため無駄なメモリ使用を防止
+- **柔軟性**: 任意の型の要素を格納可能
+
+# Set の構成要素の図解
+
+## Hash Set の内部構造例
+
+```
+Hash Set: {3, 7, 12, 8, 15}
+
+Hash Table (バケット配列):
+Index: 0   1   2   3   4   5   6   7
+      [ ] [3] [ ] [7] [12] [ ] [ ] [8,15]
+                                     |
+                              衝突リスト: 8 → 15
+
+要素追加の流れ:
+1. hash(element) でハッシュ値計算
+2. index = hash_value % bucket_size
+3. バケット[index] に要素を格納
+4. 重複チェック: 既存要素と比較
+5. 衝突時: チェイン法またはオープンアドレス法
+```
+
+## Tree Set の内部構造例
+
+```
+Tree Set: {3, 7, 8, 12, 15} (ソート済み)
+
+平衡二分探索木:
+        8
+      /   \
+     3     12
+      \   /  \
+       7 nil  15
+
+特徴:
+- 中序走査で昇順に要素を取得
+- 平衡条件でO(log n)の性能保証
+- 比較可能な要素のみ格納可能
+```
+
+## 集合演算の視覚的表現
+
+```
+集合A = {1, 2, 3, 4}
+集合B = {3, 4, 5, 6}
+
+和集合 (A ∪ B):
+A: [1][2][3][4]
+B:       [3][4][5][6]
+結果: [1][2][3][4][5][6]
+
+積集合 (A ∩ B):
+A: [1][2][3][4]
+B:       [3][4][5][6]
+結果:    [3][4]
+
+差集合 (A - B):
+A: [1][2][3][4]
+B:       [3][4][5][6]
+結果: [1][2]
+
+対称差集合 (A △ B):
+A: [1][2][3][4]
+B:       [3][4][5][6]
+結果: [1][2]    [5][6]
+```
+
+# Set で行える処理
+
+## 基本操作
+
+| 機能     | 説明             | 計算量（Hash） | 計算量（Tree） | 戻り値              | 得意/苦手 | 補足                      |
+| -------- | ---------------- | -------------- | -------------- | ------------------- | --------- | ------------------------- |
+| Add      | 要素を追加       | O(1)平均       | O(log n)       | bool（新規/既存）   | ✅        | 重複は自動で排除          |
+| Remove   | 要素を削除       | O(1)平均       | O(log n)       | bool（成功/失敗）   | ✅        | 存在しない要素は無視      |
+| Contains | 要素の存在確認   | O(1)平均       | O(log n)       | bool（存在/非存在） | ✅        | 高速検索が Set の主要機能 |
+| Size     | 要素数を取得     | O(1)           | O(1)           | int（要素数）       | ✅        | カウンタで管理            |
+| IsEmpty  | 空集合かチェック | O(1)           | O(1)           | bool（空/非空）     | ✅        | サイズ 0 の確認           |
+| Clear    | 全要素を削除     | O(n)           | O(n)           | なし（void）        | ✅        | 集合を空に初期化          |
+| ToSlice  | スライスに変換   | O(n)           | O(n)           | スライス            | ✅        | 順序は実装依存            |
+| Clone    | 集合を複製       | O(n)           | O(n)           | 新しい Set          | ✅        | 深いコピーを作成          |
+
+## 集合演算
+
+| 機能                | 説明                  | 計算量（Hash） | 計算量（Tree） | 戻り値                  | 得意/苦手 | 補足                      |
+| ------------------- | --------------------- | -------------- | -------------- | ----------------------- | --------- | ------------------------- |
+| Union               | 和集合（A ∪ B）       | O(n + m)       | O(n + m)       | 新しい Set              | ✅        | 両集合の全要素            |
+| Intersection        | 積集合（A ∩ B）       | O(min(n,m))    | O(n + m)       | 新しい Set              | ✅        | 共通要素のみ              |
+| Difference          | 差集合（A - B）       | O(n)           | O(n + m)       | 新しい Set              | ✅        | A にあり、B にない要素    |
+| SymmetricDifference | 対称差集合（A △ B）   | O(n + m)       | O(n + m)       | 新しい Set              | ✅        | 排他的論理和              |
+| IsSubset            | 部分集合判定（A ⊆ B） | O(n)           | O(n log m)     | bool（部分集合/否）     | ✅        | A の全要素が B に含まれる |
+| IsSuperset          | 上位集合判定（A ⊇ B） | O(m)           | O(m log n)     | bool（上位集合/否）     | ✅        | B の全要素が A に含まれる |
+| IsDisjoint          | 互いに素判定          | O(min(n,m))    | O(n + m)       | bool（素/共通要素あり） | ✅        | 共通要素がない            |
+| Equals              | 集合の等価性判定      | O(n)           | O(n)           | bool（等価/非等価）     | ✅        | 同じ要素を含むか          |
+
+## 変更操作（In-place）
+
+| 機能                    | 説明                   | 計算量（Hash） | 計算量（Tree） | 戻り値        | 得意/苦手 | 補足                        |
+| ----------------------- | ---------------------- | -------------- | -------------- | ------------- | --------- | --------------------------- |
+| UnionWith               | 他集合との和集合で更新 | O(m)           | O(m log n)     | なし（void）  | ✅        | 自身を和集合に更新          |
+| IntersectWith           | 他集合との積集合で更新 | O(n)           | O(n log m)     | なし（void）  | ✅        | 自身を積集合に更新          |
+| DifferenceWith          | 他集合との差集合で更新 | O(m)           | O(m log n)     | なし（void）  | ✅        | 自身を差集合に更新          |
+| SymmetricDifferenceWith | 対称差集合で更新       | O(m)           | O(m log n)     | なし（void）  | ✅        | 自身を対称差集合に更新      |
+| AddAll                  | 複数要素を一括追加     | O(m)           | O(m log n)     | int（追加数） | ✅        | スライスや Set から一括追加 |
+| RemoveAll               | 複数要素を一括削除     | O(m)           | O(m log n)     | int（削除数） | ✅        | 条件に合う要素を削除        |
+| RetainAll               | 指定要素のみ保持       | O(n)           | O(n log m)     | int（保持数） | ✅        | 交集合と同等                |
+| RemoveIf                | 条件に合う要素を削除   | O(n)           | O(n log n)     | int（削除数） | ✅        | 述語関数での選択削除        |
+
+## 順序操作（Tree Set 特有）
+
+| 機能    | 説明                 | 計算量（Tree） | 戻り値         | 得意/苦手 | 補足                 |
+| ------- | -------------------- | -------------- | -------------- | --------- | -------------------- |
+| Min     | 最小要素を取得       | O(log n)       | 最小要素       | ✅        | ソート済みの利点     |
+| Max     | 最大要素を取得       | O(log n)       | 最大要素       | ✅        | ソート済みの利点     |
+| Floor   | 指定値以下の最大要素 | O(log n)       | 要素または nil | ✅        | 二分探索の応用       |
+| Ceiling | 指定値以上の最小要素 | O(log n)       | 要素または nil | ✅        | 二分探索の応用       |
+| Range   | 範囲内の要素を取得   | O(log n + k)   | 範囲内要素     | ✅        | k: 範囲内要素数      |
+| HeadSet | 指定値未満の要素集合 | O(log n + k)   | 新しい Set     | ✅        | 部分集合の効率的取得 |
+| TailSet | 指定値以上の要素集合 | O(log n + k)   | 新しい Set     | ✅        | 部分集合の効率的取得 |
+| SubSet  | 指定範囲の要素集合   | O(log n + k)   | 新しい Set     | ✅        | 範囲クエリに最適     |
+
+## 反復・アクセス
+
+| 機能          | 説明                     | 計算量     | 戻り値                | 得意/苦手 | 補足                 |
+| ------------- | ------------------------ | ---------- | --------------------- | --------- | -------------------- |
+| Iterator      | 要素の反復子を取得       | O(1)       | Iterator              | ✅        | for range で使用     |
+| ForEach       | 各要素に関数を適用       | O(n)       | なし（void）          | ✅        | 関数型プログラミング |
+| Filter        | 条件に合う要素でフィルタ | O(n)       | 新しい Set            | ✅        | 述語関数での選択     |
+| Map           | 各要素を変換して新集合   | O(n)       | 新しい Set            | ✅        | 要素の変換処理       |
+| Reduce        | 要素を集約して単一値     | O(n)       | 集約結果              | ✅        | 累積計算             |
+| Any           | 条件に合う要素があるか   | O(n)       | bool（存在/非存在）   | ✅        | 短絡評価             |
+| All           | 全要素が条件に合うか     | O(n)       | bool（全て/一部違う） | ✅        | 短絡評価             |
+| ToSortedSlice | ソート済みスライス変換   | O(n log n) | ソート済みスライス    | ⚠️        | Tree Set なら O(n)   |
+
+## 苦手な処理・制限
+
+| 機能             | 説明                         | 計算量 | 戻り値         | 得意/苦手 | 補足                            |
+| ---------------- | ---------------------------- | ------ | -------------- | --------- | ------------------------------- |
+| IndexAccess      | インデックスでの直接アクセス | O(n)   | i 番目の要素   | ❌        | 順序が定義されていない          |
+| RandomAccess     | ランダムアクセス             | O(n)   | ランダムな要素 | ❌        | 配列のような直接アクセス不可    |
+| Duplicates       | 重複要素の管理               | -      | -              | ❌        | 設計上、重複は許可されない      |
+| Order            | 要素の順序制御               | -      | -              | ❌        | Hash Set では順序は保証されない |
+| PartialUpdate    | 要素の部分更新               | O(n)   | 更新後要素     | ❌        | 削除＋追加が必要                |
+| BinaryOperations | ビット演算                   | -      | -              | ❌        | Bit Set 以外では意味がない      |
+
+# Go 言語での Set 実装
+
+## Go 言語の組み込み関数と Set
+
+Go 言語には **Set 型は組み込まれていません** が、map を使って Set を実装するのが一般的です。
+
+### map を使った簡易 Set 実装
+
+```go
+// 文字列のSet（最も基本的な実装）
+type StringSet map[string]bool
+
+func NewStringSet() StringSet {
+    return make(StringSet)
+}
+
+func (s StringSet) Add(item string) {
+    s[item] = true
+}
+
+func (s StringSet) Remove(item string) {
+    delete(s, item)
+}
+
+func (s StringSet) Contains(item string) bool {
+    _, exists := s[item]
+    return exists
+}
+
+func (s StringSet) Size() int {
+    return len(s)
+}
+
+// 使用例
+set := NewStringSet()
+set.Add("apple")
+set.Add("banana")
+set.Add("apple") // 重複は無視される
+
+fmt.Println(set.Contains("apple"))  // true
+fmt.Println(set.Size())             // 2
+```
+
+### 空の構造体を使ったメモリ効率的な実装
+
+```go
+// メモリ効率を重視した実装
+type StringSet map[string]struct{}
+
+func NewStringSet() StringSet {
+    return make(StringSet)
+}
+
+func (s StringSet) Add(item string) {
+    s[item] = struct{}{} // 空の構造体でメモリ節約
+}
+
+func (s StringSet) Contains(item string) bool {
+    _, exists := s[item]
+    return exists
+}
+```
+
+## 汎用的な Set 実装
+
+### 型パラメータ（Generics）を使った実装
+
+```go
+package set
+
+import (
+    "fmt"
+    "strings"
+)
+
+// 比較可能な型のための汎用Set
+type Set[T comparable] struct {
+    items map[T]struct{}
+}
+
+// 新しいSetを作成
+func New[T comparable]() *Set[T] {
+    return &Set[T]{
+        items: make(map[T]struct{}),
+    }
+}
+
+// スライスからSetを作成
+func From[T comparable](items []T) *Set[T] {
+    s := New[T]()
+    for _, item := range items {
+        s.Add(item)
+    }
+    return s
+}
+
+// 要素を追加
+func (s *Set[T]) Add(item T) bool {
+    if s.Contains(item) {
+        return false // 既に存在
+    }
+    s.items[item] = struct{}{}
+    return true // 新規追加
+}
+
+// 複数要素を追加
+func (s *Set[T]) AddAll(items ...T) int {
+    count := 0
+    for _, item := range items {
+        if s.Add(item) {
+            count++
+        }
+    }
+    return count
+}
+
+// 要素を削除
+func (s *Set[T]) Remove(item T) bool {
+    if !s.Contains(item) {
+        return false // 存在しない
+    }
+    delete(s.items, item)
+    return true // 削除成功
+}
+
+// 複数要素を削除
+func (s *Set[T]) RemoveAll(items ...T) int {
+    count := 0
+    for _, item := range items {
+        if s.Remove(item) {
+            count++
+        }
+    }
+    return count
+}
+
+// 要素の存在確認
+func (s *Set[T]) Contains(item T) bool {
+    _, exists := s.items[item]
+    return exists
+}
+
+// サイズを取得
+func (s *Set[T]) Size() int {
+    return len(s.items)
+}
+
+// 空かどうかチェック
+func (s *Set[T]) IsEmpty() bool {
+    return len(s.items) == 0
+}
+
+// 全要素を削除
+func (s *Set[T]) Clear() {
+    s.items = make(map[T]struct{})
+}
+
+// スライスに変換
+func (s *Set[T]) ToSlice() []T {
+    result := make([]T, 0, len(s.items))
+    for item := range s.items {
+        result = append(result, item)
+    }
+    return result
+}
+
+// 複製を作成
+func (s *Set[T]) Clone() *Set[T] {
+    clone := New[T]()
+    for item := range s.items {
+        clone.Add(item)
+    }
+    return clone
+}
+
+// 和集合
+func (s *Set[T]) Union(other *Set[T]) *Set[T] {
+    result := s.Clone()
+    for item := range other.items {
+        result.Add(item)
+    }
+    return result
+}
+
+// 積集合
+func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
+    result := New[T]()
+
+    // より小さい集合を基準にする（効率化）
+    smaller, larger := s, other
+    if other.Size() < s.Size() {
+        smaller, larger = other, s
+    }
+
+    for item := range smaller.items {
+        if larger.Contains(item) {
+            result.Add(item)
+        }
+    }
+    return result
+}
+
+// 差集合
+func (s *Set[T]) Difference(other *Set[T]) *Set[T] {
+    result := New[T]()
+    for item := range s.items {
+        if !other.Contains(item) {
+            result.Add(item)
+        }
+    }
+    return result
+}
+
+// 対称差集合
+func (s *Set[T]) SymmetricDifference(other *Set[T]) *Set[T] {
+    result := New[T]()
+
+    // sにあってotherにない要素
+    for item := range s.items {
+        if !other.Contains(item) {
+            result.Add(item)
+        }
+    }
+
+    // otherにあってsにない要素
+    for item := range other.items {
+        if !s.Contains(item) {
+            result.Add(item)
+        }
+    }
+
+    return result
+}
+
+// 部分集合判定
+func (s *Set[T]) IsSubset(other *Set[T]) bool {
+    if s.Size() > other.Size() {
+        return false
+    }
+
+    for item := range s.items {
+        if !other.Contains(item) {
+            return false
+        }
+    }
+    return true
+}
+
+// 上位集合判定
+func (s *Set[T]) IsSuperset(other *Set[T]) bool {
+    return other.IsSubset(s)
+}
+
+// 互いに素判定
+func (s *Set[T]) IsDisjoint(other *Set[T]) bool {
+    // より小さい集合を基準にする
+    smaller, larger := s, other
+    if other.Size() < s.Size() {
+        smaller, larger = other, s
+    }
+
+    for item := range smaller.items {
+        if larger.Contains(item) {
+            return false
+        }
+    }
+    return true
+}
+
+// 等価性判定
+func (s *Set[T]) Equals(other *Set[T]) bool {
+    if s.Size() != other.Size() {
+        return false
+    }
+
+    for item := range s.items {
+        if !other.Contains(item) {
+            return false
+        }
+    }
+    return true
+}
+
+// In-place操作: 和集合で更新
+func (s *Set[T]) UnionWith(other *Set[T]) {
+    for item := range other.items {
+        s.Add(item)
+    }
+}
+
+// In-place操作: 積集合で更新
+func (s *Set[T]) IntersectWith(other *Set[T]) {
+    toRemove := make([]T, 0)
+    for item := range s.items {
+        if !other.Contains(item) {
+            toRemove = append(toRemove, item)
+        }
+    }
+
+    for _, item := range toRemove {
+        s.Remove(item)
+    }
+}
+
+// In-place操作: 差集合で更新
+func (s *Set[T]) DifferenceWith(other *Set[T]) {
+    for item := range other.items {
+        s.Remove(item)
+    }
+}
+
+// 条件に合う要素を削除
+func (s *Set[T]) RemoveIf(predicate func(T) bool) int {
+    toRemove := make([]T, 0)
+    for item := range s.items {
+        if predicate(item) {
+            toRemove = append(toRemove, item)
+        }
+    }
+
+    for _, item := range toRemove {
+        s.Remove(item)
+    }
+
+    return len(toRemove)
+}
+
+// 各要素に関数を適用
+func (s *Set[T]) ForEach(fn func(T)) {
+    for item := range s.items {
+        fn(item)
+    }
+}
+
+// 条件に合う要素があるかチェック
+func (s *Set[T]) Any(predicate func(T) bool) bool {
+    for item := range s.items {
+        if predicate(item) {
+            return true
+        }
+    }
+    return false
+}
+
+// 全要素が条件に合うかチェック
+func (s *Set[T]) All(predicate func(T) bool) bool {
+    for item := range s.items {
+        if !predicate(item) {
+            return false
+        }
+    }
+    return true
+}
+
+// 条件に合う要素でフィルタ
+func (s *Set[T]) Filter(predicate func(T) bool) *Set[T] {
+    result := New[T]()
+    for item := range s.items {
+        if predicate(item) {
+            result.Add(item)
+        }
+    }
+    return result
+}
+
+// 文字列表現
+func (s *Set[T]) String() string {
+    if s.IsEmpty() {
+        return "{}"
+    }
+
+    items := make([]string, 0, s.Size())
+    for item := range s.items {
+        items = append(items, fmt.Sprintf("%v", item))
+    }
+
+    return "{" + strings.Join(items, ", ") + "}"
+}
+
+// イテレータパターン（チャネル使用）
+func (s *Set[T]) Iterator() <-chan T {
+    ch := make(chan T, s.Size())
+
+    go func() {
+        defer close(ch)
+        for item := range s.items {
+            ch <- item
+        }
+    }()
+
+    return ch
+}
+```
+
+### Tree Set の実装例
+
+```go
+package treeset
+
+import (
+    "fmt"
+    "golang.org/x/exp/constraints"
+)
+
+// ノード構造体
+type node[T constraints.Ordered] struct {
+    value       T
+    left, right *node[T]
+    height      int
+}
+
+// Tree Set構造体（AVL木ベース）
+type TreeSet[T constraints.Ordered] struct {
+    root *node[T]
+    size int
+}
+
+// 新しいTree Setを作成
+func New[T constraints.Ordered]() *TreeSet[T] {
+    return &TreeSet[T]{}
+}
+
+// 高さを取得
+func (n *node[T]) getHeight() int {
+    if n == nil {
+        return 0
+    }
+    return n.height
+}
+
+// バランス係数を計算
+func (n *node[T]) getBalance() int {
+    if n == nil {
+        return 0
+    }
+    return n.left.getHeight() - n.right.getHeight()
+}
+
+// 高さを更新
+func (n *node[T]) updateHeight() {
+    leftHeight := n.left.getHeight()
+    rightHeight := n.right.getHeight()
+
+    if leftHeight > rightHeight {
+        n.height = leftHeight + 1
+    } else {
+        n.height = rightHeight + 1
+    }
+}
+
+// 右回転
+func (ts *TreeSet[T]) rotateRight(y *node[T]) *node[T] {
+    x := y.left
+    t2 := x.right
+
+    x.right = y
+    y.left = t2
+
+    y.updateHeight()
+    x.updateHeight()
+
+    return x
+}
+
+// 左回転
+func (ts *TreeSet[T]) rotateLeft(x *node[T]) *node[T] {
+    y := x.right
+    t2 := y.left
+
+    y.left = x
+    x.right = t2
+
+    x.updateHeight()
+    y.updateHeight()
+
+    return y
+}
+
+// 要素を追加
+func (ts *TreeSet[T]) Add(value T) bool {
+    oldSize := ts.size
+    ts.root = ts.insert(ts.root, value)
+    return ts.size > oldSize
+}
+
+func (ts *TreeSet[T]) insert(n *node[T], value T) *node[T] {
+    // 基本的な二分探索木の挿入
+    if n == nil {
+        ts.size++
+        return &node[T]{
+            value:  value,
+            height: 1,
+        }
+    }
+
+    if value < n.value {
+        n.left = ts.insert(n.left, value)
+    } else if value > n.value {
+        n.right = ts.insert(n.right, value)
+    } else {
+        // 重複は追加しない
+        return n
+    }
+
+    // 高さを更新
+    n.updateHeight()
+
+    // バランスを確認して回転
+    balance := n.getBalance()
+
+    // Left Left Case
+    if balance > 1 && value < n.left.value {
+        return ts.rotateRight(n)
+    }
+
+    // Right Right Case
+    if balance < -1 && value > n.right.value {
+        return ts.rotateLeft(n)
+    }
+
+    // Left Right Case
+    if balance > 1 && value > n.left.value {
+        n.left = ts.rotateLeft(n.left)
+        return ts.rotateRight(n)
+    }
+
+    // Right Left Case
+    if balance < -1 && value < n.right.value {
+        n.right = ts.rotateRight(n.right)
+        return ts.rotateLeft(n)
+    }
+
+    return n
+}
+
+// 要素の存在確認
+func (ts *TreeSet[T]) Contains(value T) bool {
+    return ts.search(ts.root, value)
+}
+
+func (ts *TreeSet[T]) search(n *node[T], value T) bool {
+    if n == nil {
+        return false
+    }
+
+    if value == n.value {
+        return true
+    } else if value < n.value {
+        return ts.search(n.left, value)
+    } else {
+        return ts.search(n.right, value)
+    }
+}
+
+// 最小値を取得
+func (ts *TreeSet[T]) Min() (T, bool) {
+    if ts.root == nil {
+        var zero T
+        return zero, false
+    }
+
+    min := ts.findMin(ts.root)
+    return min.value, true
+}
+
+func (ts *TreeSet[T]) findMin(n *node[T]) *node[T] {
+    for n.left != nil {
+        n = n.left
+    }
+    return n
+}
+
+// 最大値を取得
+func (ts *TreeSet[T]) Max() (T, bool) {
+    if ts.root == nil {
+        var zero T
+        return zero, false
+    }
+
+    max := ts.findMax(ts.root)
+    return max.value, true
+}
+
+func (ts *TreeSet[T]) findMax(n *node[T]) *node[T] {
+    for n.right != nil {
+        n = n.right
+    }
+    return n
+}
+
+// ソート済みスライスに変換
+func (ts *TreeSet[T]) ToSortedSlice() []T {
+    result := make([]T, 0, ts.size)
+    ts.inorderTraversal(ts.root, &result)
+    return result
+}
+
+func (ts *TreeSet[T]) inorderTraversal(n *node[T], result *[]T) {
+    if n != nil {
+        ts.inorderTraversal(n.left, result)
+        *result = append(*result, n.value)
+        ts.inorderTraversal(n.right, result)
+    }
+}
+
+// 範囲内の要素を取得
+func (ts *TreeSet[T]) Range(min, max T) []T {
+    var result []T
+    ts.rangeQuery(ts.root, min, max, &result)
+    return result
+}
+
+func (ts *TreeSet[T]) rangeQuery(n *node[T], min, max T, result *[]T) {
+    if n == nil {
+        return
+    }
+
+    if min < n.value {
+        ts.rangeQuery(n.left, min, max, result)
+    }
+
+    if min <= n.value && n.value <= max {
+        *result = append(*result, n.value)
+    }
+
+    if n.value < max {
+        ts.rangeQuery(n.right, min, max, result)
+    }
+}
+
+// サイズを取得
+func (ts *TreeSet[T]) Size() int {
+    return ts.size
+}
+
+// 文字列表現
+func (ts *TreeSet[T]) String() string {
+    values := ts.ToSortedSlice()
+    return fmt.Sprintf("TreeSet%v", values)
+}
+```
+
+### Bit Set の実装例
+
+```go
+package bitset
+
+import (
+    "fmt"
+    "math/bits"
+)
+
+// Bit Set構造体
+type BitSet struct {
+    bits []uint64
+    size int
+}
+
+// 新しいBit Setを作成
+func New(size int) *BitSet {
+    wordsNeeded := (size + 63) / 64
+    return &BitSet{
+        bits: make([]uint64, wordsNeeded),
+        size: size,
+    }
+}
+
+// ビットを設定
+func (bs *BitSet) Set(index int) {
+    if index >= bs.size || index < 0 {
+        return
+    }
+
+    wordIndex := index / 64
+    bitIndex := index % 64
+    bs.bits[wordIndex] |= (1 << bitIndex)
+}
+
+// ビットをクリア
+func (bs *BitSet) Clear(index int) {
+    if index >= bs.size || index < 0 {
+        return
+    }
+
+    wordIndex := index / 64
+    bitIndex := index % 64
+    bs.bits[wordIndex] &^= (1 << bitIndex)
+}
+
+// ビットをフリップ
+func (bs *BitSet) Flip(index int) {
+    if index >= bs.size || index < 0 {
+        return
+    }
+
+    wordIndex := index / 64
+    bitIndex := index % 64
+    bs.bits[wordIndex] ^= (1 << bitIndex)
+}
+
+// ビットの状態を取得
+func (bs *BitSet) Get(index int) bool {
+    if index >= bs.size || index < 0 {
+        return false
+    }
+
+    wordIndex := index / 64
+    bitIndex := index % 64
+    return (bs.bits[wordIndex] & (1 << bitIndex)) != 0
+}
+
+// 設定されているビット数をカウント
+func (bs *BitSet) Count() int {
+    count := 0
+    for _, word := range bs.bits {
+        count += bits.OnesCount64(word)
+    }
+    return count
+}
+
+// 和集合
+func (bs *BitSet) Union(other *BitSet) *BitSet {
+    maxSize := bs.size
+    if other.size > maxSize {
+        maxSize = other.size
+    }
+
+    result := New(maxSize)
+    minWords := len(bs.bits)
+    if len(other.bits) < minWords {
+        minWords = len(other.bits)
+    }
+
+    // 共通部分
+    for i := 0; i < minWords; i++ {
+        result.bits[i] = bs.bits[i] | other.bits[i]
+    }
+
+    // 残り部分をコピー
+    if len(bs.bits) > minWords {
+        copy(result.bits[minWords:], bs.bits[minWords:])
+    } else if len(other.bits) > minWords {
+        copy(result.bits[minWords:], other.bits[minWords:])
+    }
+
+    return result
+}
+
+// 積集合
+func (bs *BitSet) Intersection(other *BitSet) *BitSet {
+    minSize := bs.size
+    if other.size < minSize {
+        minSize = other.size
+    }
+
+    result := New(minSize)
+    minWords := len(bs.bits)
+    if len(other.bits) < minWords {
+        minWords = len(other.bits)
+    }
+
+    for i := 0; i < minWords; i++ {
+        result.bits[i] = bs.bits[i] & other.bits[i]
+    }
+
+    return result
+}
+
+// 文字列表現
+func (bs *BitSet) String() string {
+    setBits := make([]int, 0)
+    for i := 0; i < bs.size; i++ {
+        if bs.Get(i) {
+            setBits = append(setBits, i)
+        }
+    }
+    return fmt.Sprintf("BitSet%v", setBits)
+}
+```
+
+## 使用例とベンチマーク
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+    "math/rand"
+)
+
+func main() {
+    // 基本的な使用例
+    basicExample()
+
+    // 集合演算の例
+    setOperationsExample()
+
+    // パフォーマンス比較
+    performanceComparison()
+}
+
+func basicExample() {
+    fmt.Println("=== 基本的な使用例 ===")
+
+    // Hash Set
+    hashSet := New[int]()
+    hashSet.AddAll(1, 2, 3, 4, 5)
+    fmt.Printf("Hash Set: %s\n", hashSet)
+    fmt.Printf("Contains 3: %t\n", hashSet.Contains(3))
+    fmt.Printf("Size: %d\n", hashSet.Size())
+
+    // Tree Set
+    treeSet := NewTreeSet[int]()
+    treeSet.Add(5)
+    treeSet.Add(2)
+    treeSet.Add(8)
+    treeSet.Add(1)
+    fmt.Printf("Tree Set: %s\n", treeSet)
+
+    min, _ := treeSet.Min()
+    max, _ := treeSet.Max()
+    fmt.Printf("Min: %d, Max: %d\n", min, max)
+}
+
+func setOperationsExample() {
+    fmt.Println("\n=== 集合演算の例 ===")
+
+    setA := From([]int{1, 2, 3, 4, 5})
+    setB := From([]int{4, 5, 6, 7, 8})
+
+    fmt.Printf("Set A: %s\n", setA)
+    fmt.Printf("Set B: %s\n", setB)
+
+    union := setA.Union(setB)
+    fmt.Printf("A ∪ B: %s\n", union)
+
+    intersection := setA.Intersection(setB)
+    fmt.Printf("A ∩ B: %s\n", intersection)
+
+    difference := setA.Difference(setB)
+    fmt.Printf("A - B: %s\n", difference)
+
+    symmetricDiff := setA.SymmetricDifference(setB)
+    fmt.Printf("A △ B: %s\n", symmetricDiff)
+
+    fmt.Printf("A ⊆ B: %t\n", setA.IsSubset(setB))
+    fmt.Printf("A ∩ B = ∅: %t\n", setA.IsDisjoint(setB))
+}
+
+func performanceComparison() {
+    fmt.Println("\n=== パフォーマンス比較 ===")
+
+    const n = 100000
+
+    // Hash Set ベンチマーク
+    start := time.Now()
+    hashSet := New[int]()
+    for i := 0; i < n; i++ {
+        hashSet.Add(rand.Intn(n))
+    }
+    hashSetTime := time.Since(start)
+
+    // Tree Set ベンチマーク
+    start = time.Now()
+    treeSet := NewTreeSet[int]()
+    for i := 0; i < n; i++ {
+        treeSet.Add(rand.Intn(n))
+    }
+    treeSetTime := time.Since(start)
+
+    // Bit Set ベンチマーク
+    start = time.Now()
+    bitSet := NewBitSet(n)
+    for i := 0; i < n; i++ {
+        bitSet.Set(rand.Intn(n))
+    }
+    bitSetTime := time.Since(start)
+
+    fmt.Printf("Hash Set: %v (要素数: %d)\n", hashSetTime, hashSet.Size())
+    fmt.Printf("Tree Set: %v (要素数: %d)\n", treeSetTime, treeSet.Size())
+    fmt.Printf("Bit Set:  %v (要素数: %d)\n", bitSetTime, bitSet.Count())
+
+    // 検索パフォーマンス
+    searchValue := rand.Intn(n)
+
+    start = time.Now()
+    for i := 0; i < 10000; i++ {
+        hashSet.Contains(searchValue)
+    }
+    hashSearchTime := time.Since(start)
+
+    start = time.Now()
+    for i := 0; i < 10000; i++ {
+        treeSet.Contains(searchValue)
+    }
+    treeSearchTime := time.Since(start)
+
+    start = time.Now()
+    for i := 0; i < 10000; i++ {
+        bitSet.Get(searchValue)
+    }
+    bitSearchTime := time.Since(start)
+
+    fmt.Printf("\n検索パフォーマンス (10000回):\n")
+    fmt.Printf("Hash Set: %v\n", hashSearchTime)
+    fmt.Printf("Tree Set: %v\n", treeSearchTime)
+    fmt.Printf("Bit Set:  %v\n", bitSearchTime)
+}
+```
+
+# Set の応用例
+
+## 1. 重複排除・ユニーク処理
+
+- **データクリーニング**: 重複レコードの除去
+- **ID の一意性確保**: ユーザー ID、商品 ID の管理
+- **重複ファイル検出**: ファイルハッシュによる重複判定
+- **メール配信**: 重複メールアドレスの排除
+
+## 2. メンバーシップ管理
+
+- **ユーザー権限**: 特定機能へのアクセス権管理
+- **グループ管理**: ユーザーのグループ所属判定
+- **ブラックリスト/ホワイトリスト**: 許可/禁止 IP アドレス管理
+- **購読管理**: ニュースレター購読者管理
+
+## 3. グラフ・ネットワーク処理
+
+- **隣接ノード管理**: グラフの隣接リスト
+- **訪問済みノード**: グラフ探索での重複訪問防止
+- **連結成分**: グラフの連結成分解析
+- **最短経路**: ダイクストラ法での訪問済み管理
+
+## 4. キャッシュ・データ管理
+
+- **キーの管理**: キャッシュのキー集合
+- **無効化管理**: 無効化対象の管理
+- **依存関係**: データ間の依存関係管理
+- **変更追跡**: 変更されたオブジェクトの追跡
+
+## 5. セキュリティ・認証
+
+- **セッション管理**: アクティブセッションの追跡
+- **トークン管理**: 有効な API トークンの管理
+- **ブルートフォース対策**: 攻撃 IP アドレスの記録
+- **パスワードポリシー**: 使用済みパスワードの管理
+
+## 6. 検索・フィルタリング
+
+- **検索条件**: 複数条件の組み合わせ
+- **タグシステム**: 商品・記事のタグ管理
+- **カテゴリフィルタ**: 商品カテゴリの選択状態
+- **ファセット検索**: 多面的な検索条件
+
+## 7. スケジューリング・並行処理
+
+- **実行中タスク**: 現在実行中のタスク ID
+- **ロック管理**: 取得済みロックの管理
+- **リソース管理**: 使用中リソースの追跡
+- **ワーカー管理**: アクティブワーカーの管理
+
+## 8. アルゴリズム・データ処理
+
+- **Union-Find**: 素集合データ構造の基盤
+- **ブルームフィルタ**: 確率的集合データ構造
+- **A\*探索**: オープンリスト・クローズドリスト
+- **動的計画法**: メモ化での重複計算回避
+
+## 9. Web 開発・API
+
+- **CORS 設定**: 許可ドメインの管理
+- **レート制限**: API アクセス制限の管理
+- **フィーチャーフラグ**: 有効機能の管理
+- **A/B テスト**: テストグループの管理
+
+## 10. ゲーム開発
+
+- **所持アイテム**: プレイヤーの所持品管理
+- **スキル習得**: 習得済みスキルの管理
+- **フレンドリスト**: 友達関係の管理
+- **達成実績**: アンロック済み実績の管理
+
+# Set と他のデータ構造との比較
+
+## コレクション型比較
+
+| 特徴                     | Set                | Array/Slice    | Map             | List               | Queue/Stack |
+| ------------------------ | ------------------ | -------------- | --------------- | ------------------ | ----------- |
+| **重複要素**             | ❌ 不可            | ✅ 可能        | ❌ キーは不可   | ✅ 可能            | ✅ 可能     |
+| **順序保持**             | ⚠️ 実装依存        | ✅ 保持        | ❌ 一般的に無し | ✅ 保持            | ✅ 保持     |
+| **インデックスアクセス** | ❌ 不可            | ✅ O(1)        | ❌ 不可         | ✅ O(1)または O(n) | ❌ 制限あり |
+| **検索性能**             | ✅ O(1)～ O(log n) | ❌ O(n)        | ✅ O(1)         | ❌ O(n)            | ❌ O(n)     |
+| **挿入性能**             | ✅ O(1)～ O(log n) | ⚠️ O(1)～ O(n) | ✅ O(1)         | ⚠️ O(1)～ O(n)     | ✅ O(1)     |
+| **削除性能**             | ✅ O(1)～ O(log n) | ❌ O(n)        | ✅ O(1)         | ⚠️ O(1)～ O(n)     | ✅ O(1)     |
+| **メモリ効率**           | ✅ 重複なし        | ⚠️ 重複あり    | ⚠️ キー+値      | ⚠️ 重複あり        | ⚠️ 重複あり |
+| **集合演算**             | ✅ 最適            | ❌ 非効率      | ⚠️ 可能だが複雑 | ❌ 非効率          | ❌ 不適     |
+| **実装複雑度**           | ⚠️ 中程度          | ✅ 簡単        | ⚠️ 中程度       | ✅ 簡単            | ✅ 簡単     |
+
+## Set 実装方式比較
+
+| 特徴               | Hash Set  | Tree Set    | Linked Hash Set | Bit Set       | Array Set   |
+| ------------------ | --------- | ----------- | --------------- | ------------- | ----------- |
+| **平均検索時間**   | O(1)      | O(log n)    | O(1)            | O(1)          | O(n)        |
+| **最悪検索時間**   | O(n)      | O(log n)    | O(n)            | O(1)          | O(n)        |
+| **平均挿入時間**   | O(1)      | O(log n)    | O(1)            | O(1)          | O(n)        |
+| **順序保持**       | ❌ なし   | ✅ ソート順 | ✅ 挿入順       | ❌ なし       | ✅ 挿入順   |
+| **範囲クエリ**     | ❌ 不可   | ✅ 効率的   | ❌ 不可         | ⚠️ 限定的     | ❌ 線形探索 |
+| **メモリ効率**     | ⚠️ 中程度 | ⚠️ 中程度   | ❌ 高い         | ✅ 最高       | ✅ 良好     |
+| **キャッシュ効率** | ⚠️ 中程度 | ❌ 低い     | ⚠️ 中程度       | ✅ 最高       | ✅ 最高     |
+| **適用データ型**   | ✅ 任意   | ⚠️ 比較可能 | ✅ 任意         | ⚠️ 小さな整数 | ✅ 任意     |
+| **並行安全性**     | ❌ 要同期 | ❌ 要同期   | ❌ 要同期       | ⚠️ 部分的     | ❌ 要同期   |
+| **実装複雑度**     | ⚠️ 中程度 | ❌ 複雑     | ❌ 複雑         | ✅ 簡単       | ✅ 簡単     |
+
+## 用途別最適選択
+
+| 用途                   | 第 1 選択       | 第 2 選択       | 第 3 選択 | 避けるべき         |
+| ---------------------- | --------------- | --------------- | --------- | ------------------ |
+| **一般的な重複排除**   | Hash Set        | Tree Set        | Array Set | List、Array        |
+| **順序が重要**         | Tree Set        | Linked Hash Set | Array Set | Hash Set           |
+| **頻繁な範囲クエリ**   | Tree Set        | -               | -         | Hash Set、Bit Set  |
+| **小さな整数集合**     | Bit Set         | Hash Set        | Array Set | Tree Set           |
+| **大量データ**         | Hash Set        | Tree Set        | -         | Array Set、Bit Set |
+| **メモリ制約環境**     | Bit Set         | Array Set       | Hash Set  | Tree Set           |
+| **キャッシュ効率重視** | Bit Set         | Array Set       | Hash Set  | Tree Set           |
+| **集合演算頻発**       | Hash Set        | Tree Set        | Bit Set   | Array、List        |
+| **並行処理**           | 同期化 Hash Set | 同期化 Tree Set | -         | 非同期版           |
+| **組み込みシステム**   | Bit Set         | Array Set       | -         | Hash Set、Tree Set |
+
+# パフォーマンス特性
+
+## 操作別計算量比較
+
+| 操作             | Hash Set           | Tree Set | Bit Set        | Array Set |
+| ---------------- | ------------------ | -------- | -------------- | --------- |
+| **Add**          | O(1)平均, O(n)最悪 | O(log n) | O(1)           | O(n)      |
+| **Remove**       | O(1)平均, O(n)最悪 | O(log n) | O(1)           | O(n)      |
+| **Contains**     | O(1)平均, O(n)最悪 | O(log n) | O(1)           | O(n)      |
+| **Union**        | O(n + m)           | O(n + m) | O(max(n,m)/64) | O(n×m)    |
+| **Intersection** | O(min(n,m))        | O(n + m) | O(max(n,m)/64) | O(n×m)    |
+| **Iteration**    | O(n)               | O(n)     | O(n/64)        | O(n)      |
+| **Size**         | O(1)               | O(1)     | O(n/64)        | O(1)      |
+
+## データサイズ別推奨実装
+
+| データサイズ     | 推奨実装  | 理由             |
+| ---------------- | --------- | ---------------- |
+| **< 10 要素**    | Array Set | 単純で高速       |
+| **10-100 要素**  | Hash Set  | バランスが良い   |
+| **100-10K 要素** | Hash Set  | 検索性能が優秀   |
+| **10K-1M 要素**  | Hash Set  | スケーラビリティ |
+| **> 1M 要素**    | Hash Set  | メモリ効率と性能 |
+| **順序重要**     | Tree Set  | ソート済み管理   |
+| **0-10K 整数**   | Bit Set   | 最高の効率       |
+
+## メモリ使用量比較（概算）
+
+| 実装方式      | 要素あたりメモリ | 固定オーバーヘッド | 特徴                       |
+| ------------- | ---------------- | ------------------ | -------------------------- |
+| **Hash Set**  | 24-32 bytes      | 数 KB              | ポインタとハッシュテーブル |
+| **Tree Set**  | 32-48 bytes      | 数百 bytes         | ノード構造とポインタ       |
+| **Bit Set**   | 1 bit            | 数十 bytes         | 最小メモリ                 |
+| **Array Set** | 8-24 bytes       | 数十 bytes         | 要素型に依存               |
+
+# まとめ
+
+Set（集合）は、重複のない要素の集まりを効率的に管理するための基本的なデータ構造です。重複排除、高速な存在確認、集合演算などの機能を提供し、様々なアプリケーションで活用されています。
+
+Go 言語では標準で Set 型が提供されていませんが、map を使った実装や、Generics を活用した汎用的な実装が可能です。用途に応じて Hash Set、Tree Set、Bit Set などの実装方式を選択し、パフォーマンスとメモリ効率のバランスを考慮することが重要です。
+
+特に、重複排除、メンバーシップ判定、集合演算が
