@@ -25,6 +25,16 @@
 - **完全二分木**なので配列で効率的に実装可能
 - **順序走査や範囲検索は苦手**
 
+# ヒープと優先度付きキュー
+
+- **ヒープ**
+  - **特徴**: データ構造そのもの。完全二分木の特徴を持ち、全ての親ノード・子ノードのペアに対して、親ノードの値が子ノードよりも小さい（最小ヒープ）、または大きい（最大ヒープ）。
+  - **用途**: ヒープソート、優先度付きキュー、グラフアルゴリズムでの利用（例: ダイクストラ法、プライム法）
+- **優先度付きキュー**
+  - **特徴**: 抽象データ型。各要素に優先度を持たせ、ルートノードに優先度が一番高いデータを保存し、高速に取り出せる。
+  - **実装**: ヒープが多い。配列や連結リストでも実装可能。
+  - **用途**: タスクスケジューリング、イベント駆動システム、グラフアルゴリズム（例: ダイクストラ法、プライム法）
+
 # ヒープの一般的な実装方法
 
 ## 配列による実装
@@ -37,6 +47,8 @@
 - 動的サイズ変更も容易
 
 ## Go による最小ヒープの実装例
+
+ライブラリを用いずに、自前で最小ヒープを実装します。
 
 ```go
 package heap
@@ -107,9 +119,84 @@ func (h *MinHeap) Peek() (int, bool) {
 }
 ```
 
+## Go による最大ヒープの実装例
+
+`container/heap` パッケージを使用して最大ヒープを実装する例です。
+優先度の高い要素を効率的に管理できます。
+
+```go
+package main
+
+import (
+    "container/heap"
+    "fmt"
+)
+
+// Item はヒープ内の要素を表します
+type Item struct {
+    value    string // 要素の値
+    priority int    // 優先度（大きいほど優先される）
+}
+
+// MaxHeap は最大ヒープを表します
+type MaxHeap []*Item
+
+// Len はヒープの長さを返します
+func (h MaxHeap) Len() int { return len(h) }
+
+// Less は優先度の比較を行います（大きい値が優先される）
+func (h MaxHeap) Less(i, j int) bool {
+    return h[i].priority > h[j].priority
+}
+
+// Swap はヒープ内の要素を交換します
+func (h MaxHeap) Swap(i, j int) {
+    h[i], h[j] = h[j], h[i]
+}
+
+// Push はヒープに新しい要素を追加します
+func (h *MaxHeap) Push(x interface{}) {
+    *h = append(*h, x.(*Item))
+}
+
+// Pop はヒープから最優先の要素を取り出します
+func (h *MaxHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    item := old[n-1]
+    *h = old[0 : n-1]
+    return item
+}
+
+func main() {
+    // 最大ヒープを初期化
+    h := &MaxHeap{}
+    heap.Init(h)
+
+    // 要素を追加
+    heap.Push(h, &Item{value: "task1", priority: 3})
+    heap.Push(h, &Item{value: "task2", priority: 5})
+    heap.Push(h, &Item{value: "task3", priority: 1})
+
+    // ヒープから要素を取り出し
+    for h.Len() > 0 {
+        item := heap.Pop(h).(*Item)
+        fmt.Printf("Value: %s, Priority: %d\n", item.value, item.priority)
+    }
+}
+```
+
+実行結果
+
+```
+Value: task2, Priority: 5
+Value: task1, Priority: 3
+Value: task3, Priority: 1
+```
+
 # 優先度付きキュー（Priority Queue）とは
 
-優先度付きキューは、各要素に「優先度」を持たせ、常に最も優先度の高い（または低い）要素を高速に取り出せるデータ構造です。  
+優先度付きキューは、各要素に「優先度」を持たせ、常に最も優先度の高い（または低い）要素を高速に取り出せるデータ構造です。
 ヒープは優先度付きキューの実装に最適です。
 
 ## 優先度付きキューの一般的な実装
@@ -120,7 +207,7 @@ func (h *MinHeap) Peek() (int, bool) {
 
 ## Go による優先度付きキューの実装例
 
-Go では`container/heap`を使うのが一般的です。  
+Go では`container/heap`を使うのが一般的です。
 以下は最小ヒープによる優先度付きキューの例です。
 
 ```go
