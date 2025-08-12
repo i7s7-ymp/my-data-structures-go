@@ -1,6 +1,8 @@
 # ハッシュテーブル（Hash Table）とは
 
-ハッシュテーブルは、キーと値のペアを効率的に格納・検索するデータ構造です。ハッシュ関数を使用してキーを配列のインデックスにマッピングすることで、値の検索・追加・削除を高速に行うことができます。
+ハッシュテーブルは、キーと値のペアを効率的に格納・検索するデータ構造です。ハッシュ関数を使用してキーを配列のインデックスにマッピングし、高速なデータアクセスを実現します。
+
+**このデータ構造を使う一番の利点は、キーによる高速な検索・挿入・削除が可能な点です。** ハッシュテーブルは、データベースのインデックス、キャッシュシステム、辞書機能など、高速なデータアクセスが必要な場面で広く利用されます。
 
 ## 基本的な特徴
 
@@ -8,14 +10,37 @@
 - **ハッシュ関数**: キーを配列のインデックスに変換する関数
 - **高速アクセス**: 平均的に O(1)でのデータアクセス
 - **動的サイズ**: 必要に応じてサイズを拡張可能
-- **衝突処理**: 異なるキーが同じインデックスにマッピングされる問題への対処
+- **順序なし**: 要素の挿入順序は保持されない
+- **一意キー**: 同じキーは一度しか存在できない
 
-## ハッシュテーブルの構成要素
+# 行える処理
 
-### ハッシュ関数
+| 機能         | 説明                             | 計算量          | 戻り値              | 得意/苦手 | 補足（その他）                             |
+| ------------ | -------------------------------- | --------------- | ------------------- | --------- | ------------------------------------------ |
+| Put/Insert   | キーと値のペアを挿入             | O(1)平均        | なし（void）        | ✅        | ハッシュ関数により直接インデックスを計算。 |
+| Get/Search   | キーに対応する値を取得           | O(1)平均        | 値または nil        | ✅        | ハッシュ関数により直接アクセス可能。       |
+| Delete       | 指定したキーとその値を削除       | O(1)平均        | bool（成功/失敗）   | ✅        | 他の要素への影響なし。                     |
+| Contains     | 指定したキーが存在するかを確認   | O(1)平均        | bool（存在/非存在） | ✅        | 高速な存在確認が可能。                     |
+| Size         | ハッシュテーブル内の要素数を取得 | O(1)            | int（要素数）       | ✅        | カウンタを保持すれば定数時間。             |
+| Keys         | すべてのキーを取得               | O(n)            | キーのリスト        | -         | 全要素を走査する必要あり。                 |
+| Values       | すべての値を取得                 | O(n)            | 値のリスト          | -         | 全要素を走査する必要あり。                 |
+| Clear        | すべての要素を削除               | O(n)または O(1) | なし（void）        | -         | 実装による。                               |
+| 順次アクセス | 要素を順番に処理                 | O(n)            | -                   | ❌        | 順序が保証されず、全要素の走査が必要。     |
+| 範囲検索     | 特定の範囲のキーを検索           | O(n)            | 該当要素のリスト    | ❌        | キーの順序がないため非効率。               |
+
+# 注意点
+
+1. **ハッシュ衝突**: 異なるキーが同じハッシュ値を生成する場合があり、衝突処理が必要です。
+2. **最悪時計算量**: ハッシュ衝突が多発すると、最悪の場合 O(n)まで性能が劣化します。
+3. **メモリ使用量**: 負荷率を低く保つため、実際の要素数より多くのメモリを使用します。
+4. **順序性なし**: 要素の挿入順序や値の順序は保持されません。
+5. **ハッシュ関数の品質**: 良いハッシュ関数が性能に大きく影響します。
+
+# ハッシュテーブルの構成要素
+
+## ハッシュ関数
 
 - キーを配列のインデックスに変換する関数
-  - key をそのまま index に利用する場合もあるが、文字列などの場合はそのまま利用できない
 - 良いハッシュ関数の条件：
   - 高速に計算できる
   - 値が均等に分散される
@@ -24,12 +49,42 @@
   - どのキーに対しても、ハッシュ値が異なるハッシュ関数
   - すべての異なるキーがユニークなインデックスにマッピングされ、データの挿入・検索・削除は配列への直接アクセスとなり、計算量は $O(1) となる
 
-### バケット配列
+## バケット配列
 
 - 実際にデータを格納する配列
 - 各要素（バケット）にキー・バリューペアを格納
 
-### 衝突を解決する方法
+# 連想配列とハッシュテーブル
+
+## 連想配列とは
+
+**連想配列（Associative Array）** は、キーと値のペアを管理する抽象的なデータ型です。
+**辞書（Dictionary）** や **マップ（Map）** とも呼ばれます。
+Go 言語では、`map`型が連想配列に相当します。
+
+## ハッシュテーブルとの関係
+
+連想配列は概念、ハッシュテーブルは実装手段です。
+
+- 連想配列：「キーで値を管理したい」という要求（抽象データ型）
+- ハッシュテーブル：「その要求を高速に実現する方法」（具体的実装）
+
+ハッシュテーブル以外にも、以下のようなデータ構造で実装可能です。
+| 実装方法 | 平均計算量 | 特徴 |
+| ------------------ | ---------- | ------------------------------ |
+| **ハッシュテーブル** | O(1) | 最も高速、順序なし |
+| **平衡二分木** | O(log n) | 順序付き、安定した性能 |
+| **配列** | O(n) | シンプル、小規模データ向け |
+| **連結リスト** | O(n) | 動的、メモリ効率的 |
+
+## 連想配列の特徴
+
+- **キー・バリューペア**: 任意のキーを指定して、対応する値を効率的に格納・取得・削除できる
+- **一意性**: 同じキーは一度だけ存在できる
+- **動的**: 実行時にキー・バリューペアを追加・削除可能
+- **抽象データ型**: 実装方法に依存しない概念的なデータ構造
+
+# ハッシュ衝突の解決方法
 
 現実では完全ハッシュ関数を作ることは難しく、異なるキーが同じ idnex にマッピング（衝突）されてしまう。
 衝突を効率よく解決する方法は主に 2 つある。
@@ -37,199 +92,386 @@
 - **チェイン法**: 同じインデックスの要素を連結リストで管理
 - **オープンアドレス法**: 別の空いているインデックスを探す
 
-#### チェイン法
+## チェイン法（Separate Chaining）
 
-- 仕組み
-  - ハッシュテーブル保存時、衝突が発生したデータを連結リストに保存し。そのハッシュ値の index を持つバケットにはデータが保存された連結リストへのポインタを持たせる
-    1. キーからハッシュ値を計算し、対応するバケットを選択
-    2. バケットがからなら、新しいデータを格納
-    3. バケットにデータが存在していたら、バケットが指す連結リストの末尾に新しいデータを追加
-- 長所
-  - 実装が比較的簡単
-  - ハッシュテーブルが満杯になっても、要素を無限に追加可能
-  - 要素の削除が非常に簡単（連結リストからノードを削除するだけ）
-- 短所
-  - 連結リスト管理のために追加のメモリが必要
-  - 一つの連結リストが極端に長くなると、連結リストの検索性能が線形探索と同じになり、遅くなる（最悪 O(n)）
-  - 連結リストをたどる際にメモリアクセスが非連続的になるため、CPU キャッシュ効率が悪くなることがある
-- 向いているケース
-  - データの追加・削除が頻繁に発生する
-  - 格納するデータ量が予測しにくい
+各配列要素に連結リストを持たせ、衝突した要素を同じインデックスのリストに追加する方法です。
 
-#### オープンアドレス法
+### 仕組み
 
-- 仕組み
-  - ハッシュテーブル内の空いている別のバケットを探してデータを格納する。外部のデータ構造を利用せず、全て絵のデータはえテーブルの配列内に直接保存される
-  - 空きバケットの探し方（探査法）にいくつか種類がある
-- 探査法の種類
-  - 線形探査法
-    - 衝突したバケットを基準に隣のバケットを順番に見ていく
-    - 一次クラスタリングの問題: データが連続したブロック（クラスタ）を作りやすくなり、クラスタが大きくなると新しいデータを挿入する際に何度も衝突が起き、性能が悪化する
-  - 二乗探査法
-    - 衝突したバケットを基準に n\*\*2（1, 4, 9,...）離れたバケットを見ていく
-    - 一次クラスタリングを緩和できるが、二次クラスタリングという、特定のパターンで衝突が連鎖する問題が起こることがある
-  - ダブルハッシュ法
-    - 2 種類のハッシュを用意する。最も効率が良い。
-      1. 最初のハッシュ関数で格納位置を計算
-      2. 衝突したら、2 番目のハッシュ関数で「次の候補を探すための間隔」を計算し、その間隔でバケットを探索
-    - 探査の間隔がキーごとに異なり、クラスタリングが非常に発生しにくく、高いパフォーマンスを維持できる
-- 長所
-  - ポインタを使わないので、追加のメモリが不要で、メモリ効率が良い
-  - データが配列内に密集しているので、CPU のキャッシュ効率が良い傾向にある
-- 短所
-  - テーブルが満杯に近づくと性能が急激に低下
-  - 要素の削除が複雑。単純にデータを削除すると、探査の連鎖が途切れてしまい、その先にあるはずのデータが見つからなくなる可能性がある。利用する場合は「削除済み」を表す特別なマーカーを置く
-  - ハッシュテーブルのサイズをあらかじめ設計する必要がある
-- 向いているケース
-  - メモリ使用量を厳密に管理したい
-  - データの追加・削除が少なく、読み取りが中心
-  - テーブルの負荷率を小さく保てる
+ハッシュテーブル保存時、衝突が発生したデータを連結リストに保存し。そのハッシュ値の index を持つバケットにはデータが保存された連結リストへのポインタを持たせる
 
-## 連想配列
+1. キーからハッシュ値を計算し、対応するバケットを選択
+2. バケットがからなら、新しいデータを格納
+3. バケットにデータが存在していたら、バケットが指す連結リストの末尾に新しいデータを追加
 
-- key と value のペアをひとまとめにして管理する抽象的なデータ型
-  - 辞書や map とも呼ばれる
-- 任意のキーを指定して、対応する値を効率的に格納・取得・削除できる
-- ハッシュテーブルや平衡二分木を用いて実装される
+### 特徴
 
-# 行える処理
+- **実装が簡単**: 連結リストを使用するため理解しやすい
+- **動的サイズ**: テーブルサイズを超えても要素を追加可能
+- **削除が容易**: 要素の削除が簡単（連結リストからノードを削除するだけ）
 
-## 基本操作
+### 注意点
 
-### 挿入操作（Insert/Put）
+- **メモリ増加**: 連結リスト管理のために追加のメモリが必要
+- **探索時間の増加**: 一つの連結リストが極端に長くなると、連結リストの検索性能が線形探索と同じになり、遅くなる（最悪 O(n)）
+- **キャッシュ効率の低下**: 連結リストをたどる際にメモリアクセスが非連続的になるため、CPU キャッシュ効率が悪くなることがある
 
-- **新しいキー・バリューペアを追加**
-- キーが既に存在する場合は値を更新
+### 向いているケース
 
-### 検索操作（Search/Get）
+- データの挿入・削除が頻繁に行われる場合
+- 要素数が多く、衝突が発生しやすい場合
 
-- **指定したキーに対応する値を取得**
-- キーが存在しない場合は「見つからない」を返す
+## オープンアドレス法（Open Addressing）
 
-### 削除操作（Delete/Remove）
+衝突が発生した場合、別の空いている位置を探して要素を配置する方法です。
 
-- **指定したキーとその値を削除**
-- キーが存在しない場合は何もしない
+### 仕組み
 
-### 存在確認操作（Contains/Has）
+- ハッシュテーブル内の空いている別のバケットを探してデータを格納する。外部のデータ構造を利用せず、全てのデータはハッシュテーブルの配列内に直接保存される
+- 空きバケットの探し方（探査法）にいくつか種類がある
 
-- **指定したキーが存在するかチェック**
-- 真偽値を返す
+### 実装方法
 
-## 補助操作
+#### 線形探査法（Linear Probing）
 
-### サイズ取得
+- **探査方法**: 衝突したバケットを基準に順番に空きを探す
+- **キャッシュ効率**: 連続したメモリアクセスでキャッシュ効率が良い
+- **一次クラスタリングの問題**: データが連続したブロック（クラスタ）を作りやすくなり、クラスタが大きくなると新しいデータを挿入する際に何度も衝突が起き、性能が悪化する可能性がある
 
-- **格納されている要素数を取得**
+#### 二次探査法（Quadratic Probing）
 
-### 空判定
+- **探査方法**: 衝突したバケットを基準に n\*\*2（1, 4, 9,...）離れたバケットを見ていく
+- **一次クラスタリングを緩和**: 線形探査より分散が良い
+- **二次クラスタリングの問題**: 特定のパターンで衝突が連鎖する可能性がある
 
-- **ハッシュテーブルが空かどうかを確認**
+#### 二重ハッシュ法（Double Hashing）
 
-### 全要素の走査
+- **探査方法**: 2 種類のハッシュを用意する。最も効率が良い。
+  1. 最初のハッシュ関数で格納位置を計算
+  2. 衝突したら、2 番目のハッシュ関数で「次の候補を探すための間隔」を計算し、その間隔でバケットを探索
+- **均等分散**: 探索の間隔がキーごとに異なるため最も均等に分散されやすく（クラスタリングが発生しづらく）、高いパフォーマンスを維持できる
 
-- **すべてのキー・バリューペアを順次処理**
+### 特徴
 
-# 得意な処理（効率的な操作）
+- **メモリ効率**: ポインタを使わないので、追加のメモリが不要で、メモリ効率が良い
+- **キャッシュ効率**: データが配列内に密集しているので、CPU のキャッシュ効率が良い傾向にある
 
-## データの検索
+### 注意点
 
-- **計算量**: **O(1)** (平均)
-- ハッシュ関数により直接インデックスを計算
-- 配列や連結リストと比べて圧倒的に高速
+- **性能低下**: テーブルが満杯に近づくと性能が急激に低下
+- **削除の複雑さ**: 要素の削除が複雑。単純にデータを削除すると、探査の連鎖が途切れてしまい、その先にあるはずのデータが見つからなくなる可能性がある。利用する場合は「削除済み」を表す特別なマーカーを置く
+- **サイズ設計**: ハッシュテーブルのサイズをあらかじめ設計する必要がある
 
-## データの挿入
+### 向いているケース
 
-- **計算量**: **O(1)** (平均)
-- 既存データの移動が不要
-- 動的にサイズを拡張可能
+- メモリ使用量を厳密に管理したい
+- データの追加・削除が少なく、読み取りが中心
+- テーブルの負荷率を小さく保てる
 
-## データの削除
+# 実装方法
 
-- **計算量**: **O(1)** (平均)
-- 他の要素への影響が最小限
-- 削除後の再配置が不要
+## Go の組み込み関数（map）による実装
 
-## キーの存在確認
+Go には`map`という組み込みのハッシュテーブル型があり、最も簡単で効率的な実装方法です。
 
-- **計算量**: **O(1)** (平均)
-- 値を取得せずに存在だけを高速確認
+### 特徴
 
-# 苦手な処理（非効率的な操作）
+- **簡潔性**: 宣言と操作が非常にシンプル
+- **高性能**: Go runtime による最適化済み実装
+- **動的サイズ**: 自動的にサイズが拡張される
+- **型安全**: コンパイル時に型チェックが行われる
+- **ガベージコレクション**: メモリ管理が自動化されている
 
-## ソートされた順序での取得
+### 注意点
 
-- **計算量**: **O(n log n)**
-- ハッシュテーブルは順序を保持しない
-- ソートが必要な場合は別途処理が必要
-
-## 最小値・最大値の検索
-
-- **計算量**: **O(n)**
-- 全要素を走査する必要がある
-- 専用のデータ構造（ヒープなど）の方が効率的
-
-## 範囲検索
-
-- **計算量**: **O(n)**
-- 特定の範囲内の値を効率的に取得できない
-- B 木などの方が適している
-
-## メモリ使用量
-
-- **空間効率**: 負荷率に依存
-- 衝突を避けるため、使用率を低く保つ必要がある
-- メモリの無駄が発生しやすい
-
-## 最悪ケースの性能
-
-- **計算量**: **O(n)** (最悪の場合)
-- すべてのキーが同じインデックスにマッピングされる場合
-- ハッシュ関数の品質に依存
-
-# Go 言語での実装
-
-## 基本的な構造体
+- **順序性なし**: 要素の反復順序は保証されない（Go 1.0 以降はランダム化されている）
+- **並行安全性なし**: 複数の goroutine から同時アクセスする場合は`sync.Map`を使用する必要がある
+- **削除時の動作**: `delete()`関数使用時、キーが存在しなくてもエラーにならない
+- **ゼロ値の扱い**: 存在しないキーアクセス時はゼロ値が返される
 
 ```go
-// キー・バリューペア
-type KeyValue struct {
-    Key   string
-    Value interface{}
-    Next  *KeyValue // チェイン法用のポインタ
-}
+package main
 
-// ハッシュテーブル構造体
-type HashTable struct {
-    Buckets []*KeyValue // バケット配列
-    Size    int         // 現在の要素数
-    Capacity int        // バケットの容量
+import "fmt"
+
+func main() {
+    // マップの作成方法
+
+    // 1. make関数を使用
+    hashMap := make(map[string]int)
+
+    // 2. マップリテラルを使用
+    hashMap2 := map[string]int{
+        "apple":  100,
+        "banana": 200,
+    }
+
+    // 3. 初期容量を指定（パフォーマンス最適化）
+    hashMap3 := make(map[string]int, 100)
+
+    // 基本操作
+    hashMap["key1"] = 10        // 挿入
+    value := hashMap["key1"]    // 取得
+    delete(hashMap, "key1")     // 削除
+
+    // 存在確認（二番目の戻り値で判定）
+    value, exists := hashMap["key1"]
+    if exists {
+        fmt.Println("値:", value)
+    } else {
+        fmt.Println("キーが存在しません")
+    }
+
+    // 要素数の取得
+    size := len(hashMap)
+    fmt.Println("要素数:", size)
+
+    // 全要素の反復処理
+    for key, value := range hashMap2 {
+        fmt.Printf("%s: %d\n", key, value)
+    }
 }
 ```
 
-## ハッシュ関数の実装
+### 並行安全なマップ（sync.Map）
+
+複数の goroutine から同時アクセスする場合は`sync.Map`を使用します。
 
 ```go
-// シンプルなハッシュ関数（djb2アルゴリズム）
-func (ht *HashTable) hash(key string) int {
+package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+func main() {
+    var m sync.Map
+
+    // 値の設定
+    m.Store("key1", "value1")
+
+    // 値の取得
+    if value, ok := m.Load("key1"); ok {
+        fmt.Println("値:", value)
+    }
+
+    // 値の削除
+    m.Delete("key1")
+
+    // 存在しない場合のみ設定
+    actual, loaded := m.LoadOrStore("key2", "value2")
+    if !loaded {
+        fmt.Println("新しく設定:", actual)
+    }
+
+    // 全要素の反復処理
+    m.Range(func(key, value interface{}) bool {
+        fmt.Printf("%v: %v\n", key, value)
+        return true // 継続する場合はtrue
+    })
+}
+```
+
+## 自前実装によるハッシュテーブル
+
+### パターン 1: スライスを使用したチェイン法
+
+最も実装しやすく、理解しやすい方法です。
+
+#### 特徴
+
+- **実装の簡単さ**: スライスの append を活用して簡潔に実装可能
+- **動的サイズ**: 各バケットが動的に拡張される
+- **削除の容易さ**: スライスの要素削除は比較的簡単
+
+#### 注意点
+
+- **メモリ断片化**: スライスの拡張時に新しいメモリ領域が確保される
+- **キャッシュ効率**: 連続メモリだがバケット間の局所性は低い
+- **削除コスト**: 要素削除時にスライスの再配置が発生
+
+```go
+package main
+
+import "fmt"
+
+// キー・バリューペア
+type KeyValue struct {
+    Key   string
+    Value int
+}
+
+// ハッシュテーブル構造体
+type SliceHashTable struct {
+    buckets [][]KeyValue
+    size    int
+    capacity int
+}
+
+// 新しいハッシュテーブルを作成
+func NewSliceHashTable(capacity int) *SliceHashTable {
+    return &SliceHashTable{
+        buckets:  make([][]KeyValue, capacity),
+        capacity: capacity,
+    }
+}
+
+// ハッシュ関数（djb2アルゴリズム）
+func (ht *SliceHashTable) hash(key string) int {
     hash := 5381
     for _, char := range key {
         hash = ((hash << 5) + hash) + int(char)
     }
-    return hash % ht.Capacity
+    if hash < 0 {
+        hash = -hash
+    }
+    return hash % ht.capacity
+}
+
+// 要素を挿入
+func (ht *SliceHashTable) Put(key string, value int) {
+    index := ht.hash(key)
+
+    // 既存のキーを検索
+    for i, kv := range ht.buckets[index] {
+        if kv.Key == key {
+            ht.buckets[index][i].Value = value // 値を更新
+            return
+        }
+    }
+
+    // 新しいキー・バリューペアを追加
+    ht.buckets[index] = append(ht.buckets[index], KeyValue{Key: key, Value: value})
+    ht.size++
+
+    // 負荷率が高い場合はリハッシュ
+    if float64(ht.size)/float64(ht.capacity) > 0.75 {
+        ht.rehash()
+    }
+}
+
+// 要素を取得
+func (ht *SliceHashTable) Get(key string) (int, bool) {
+    index := ht.hash(key)
+
+    for _, kv := range ht.buckets[index] {
+        if kv.Key == key {
+            return kv.Value, true
+        }
+    }
+
+    return 0, false
+}
+
+// 要素を削除
+func (ht *SliceHashTable) Delete(key string) bool {
+    index := ht.hash(key)
+
+    for i, kv := range ht.buckets[index] {
+        if kv.Key == key {
+            // スライスから要素を削除
+            ht.buckets[index] = append(ht.buckets[index][:i], ht.buckets[index][i+1:]...)
+            ht.size--
+            return true
+        }
+    }
+
+    return false
+}
+
+// リハッシュ（容量を倍にして再配置）
+func (ht *SliceHashTable) rehash() {
+    oldBuckets := ht.buckets
+    ht.capacity *= 2
+    ht.buckets = make([][]KeyValue, ht.capacity)
+    ht.size = 0
+
+    // 全ての要素を再挿入
+    for _, bucket := range oldBuckets {
+        for _, kv := range bucket {
+            ht.Put(kv.Key, kv.Value)
+        }
+    }
+}
+
+func main() {
+    ht := NewSliceHashTable(4)
+
+    ht.Put("apple", 100)
+    ht.Put("banana", 200)
+    ht.Put("orange", 300)
+
+    if value, exists := ht.Get("apple"); exists {
+        fmt.Printf("apple: %d\n", value)
+    }
+
+    fmt.Printf("delete banana: %t\n", ht.Delete("banana"))
+    fmt.Printf("size: %d, capacity: %d\n", ht.size, ht.capacity)
 }
 ```
 
-## 基本操作の実装
+### パターン 2: 連結リストを使用したチェイン法
 
-### 挿入操作 O(1)平均
+メモリ効率を重視した実装方法です。
+
+#### 特徴
+
+- **メモリ効率**: 必要な分だけメモリを使用
+- **動的サイズ**: ノード単位での柔軟なサイズ変更
+- **削除の効率性**: ポインタ操作のみで削除可能
+
+#### 注意点
+
+- **キャッシュ効率の低下**: メモリが非連続で参照の局所性が低い
+- **メモリオーバーヘッド**: 各ノードにポインタが必要
+- **実装の複雑さ**: ポインタ操作による複雑性
 
 ```go
-func (ht *HashTable) Put(key string, value interface{}) {
+package main
+
+import "fmt"
+
+// ノード構造体
+type Node struct {
+    Key   string
+    Value int
+    Next  *Node
+}
+
+// ハッシュテーブル構造体
+type LinkedHashTable struct {
+    buckets  []*Node
+    size     int
+    capacity int
+}
+
+// 新しいハッシュテーブルを作成
+func NewLinkedHashTable(capacity int) *LinkedHashTable {
+    return &LinkedHashTable{
+        buckets:  make([]*Node, capacity),
+        capacity: capacity,
+    }
+}
+
+// ハッシュ関数
+func (ht *LinkedHashTable) hash(key string) int {
+    hash := 0
+    for _, char := range key {
+        hash = hash*31 + int(char)
+    }
+    if hash < 0 {
+        hash = -hash
+    }
+    return hash % ht.capacity
+}
+
+// 要素を挿入
+func (ht *LinkedHashTable) Put(key string, value int) {
     index := ht.hash(key)
 
-    // 既存のキーをチェック
-    current := ht.Buckets[index]
+    // 既存のキーを検索
+    current := ht.buckets[index]
     for current != nil {
         if current.Key == key {
             current.Value = value // 値を更新
@@ -238,24 +480,22 @@ func (ht *HashTable) Put(key string, value interface{}) {
         current = current.Next
     }
 
-    // 新しいキー・バリューペアを先頭に挿入
-    newNode := &KeyValue{
-        Key:   key,
-        Value: value,
-        Next:  ht.Buckets[index],
+    // 新しいノードを先頭に追加
+    newNode := &Node{Key: key, Value: value, Next: ht.buckets[index]}
+    ht.buckets[index] = newNode
+    ht.size++
+
+    // 負荷率チェック
+    if float64(ht.size)/float64(ht.capacity) > 0.75 {
+        ht.rehash()
     }
-    ht.Buckets[index] = newNode
-    ht.Size++
 }
-```
 
-### 検索操作 O(1)平均
-
-```go
-func (ht *HashTable) Get(key string) (interface{}, bool) {
+// 要素を取得
+func (ht *LinkedHashTable) Get(key string) (int, bool) {
     index := ht.hash(key)
-    current := ht.Buckets[index]
 
+    current := ht.buckets[index]
     for current != nil {
         if current.Key == key {
             return current.Value, true
@@ -263,135 +503,441 @@ func (ht *HashTable) Get(key string) (interface{}, bool) {
         current = current.Next
     }
 
-    return nil, false // キーが見つからない
+    return 0, false
 }
-```
 
-### 削除操作 O(1)平均
-
-```go
-func (ht *HashTable) Delete(key string) bool {
+// 要素を削除
+func (ht *LinkedHashTable) Delete(key string) bool {
     index := ht.hash(key)
-    current := ht.Buckets[index]
-    var prev *KeyValue
 
-    for current != nil {
-        if current.Key == key {
-            if prev == nil {
-                // 先頭要素の削除
-                ht.Buckets[index] = current.Next
-            } else {
-                // 中間要素の削除
-                prev.Next = current.Next
-            }
-            ht.Size--
+    if ht.buckets[index] == nil {
+        return false
+    }
+
+    // 先頭ノードが対象の場合
+    if ht.buckets[index].Key == key {
+        ht.buckets[index] = ht.buckets[index].Next
+        ht.size--
+        return true
+    }
+
+    // 中間・末尾ノードを検索
+    current := ht.buckets[index]
+    for current.Next != nil {
+        if current.Next.Key == key {
+            current.Next = current.Next.Next
+            ht.size--
             return true
         }
-        prev = current
         current = current.Next
     }
 
-    return false // キーが見つからない
+    return false
 }
-```
 
-### 存在確認 O(1)平均
+// リハッシュ
+func (ht *LinkedHashTable) rehash() {
+    oldBuckets := ht.buckets
+    ht.capacity *= 2
+    ht.buckets = make([]*Node, ht.capacity)
+    ht.size = 0
 
-```go
-func (ht *HashTable) Contains(key string) bool {
-    _, exists := ht.Get(key)
-    return exists
-}
-```
-
-## 補助メソッド
-
-### ハッシュテーブルの作成
-
-```go
-func NewHashTable(capacity int) *HashTable {
-    return &HashTable{
-        Buckets:  make([]*KeyValue, capacity),
-        Size:     0,
-        Capacity: capacity,
-    }
-}
-```
-
-### 全要素の表示
-
-```go
-func (ht *HashTable) Display() {
-    fmt.Printf("ハッシュテーブル (サイズ: %d, 容量: %d)\n", ht.Size, ht.Capacity)
-    for i, bucket := range ht.Buckets {
-        if bucket != nil {
-            fmt.Printf("バケット[%d]: ", i)
-            current := bucket
-            for current != nil {
-                fmt.Printf("(%s: %v)", current.Key, current.Value)
-                if current.Next != nil {
-                    fmt.Print(" -> ")
-                }
-                current = current.Next
-            }
-            fmt.Println()
+    // 全ての要素を再挿入
+    for _, head := range oldBuckets {
+        current := head
+        for current != nil {
+            ht.Put(current.Key, current.Value)
+            current = current.Next
         }
     }
 }
-```
 
-### 負荷率の計算
-
-```go
-func (ht *HashTable) LoadFactor() float64 {
-    return float64(ht.Size) / float64(ht.Capacity)
-}
-```
-
-## 使用例
-
-```go
 func main() {
-    // ハッシュテーブルを作成
-    ht := NewHashTable(10)
+    ht := NewLinkedHashTable(4)
 
-    // データの挿入
     ht.Put("apple", 100)
     ht.Put("banana", 200)
-    ht.Put("orange", 150)
-    ht.Put("grape", 300)
 
-    // データの検索
-    if value, found := ht.Get("apple"); found {
-        fmt.Printf("apple: %v\n", value)
+    if value, exists := ht.Get("apple"); exists {
+        fmt.Printf("apple: %d\n", value)
     }
-
-    // データの存在確認
-    if ht.Contains("banana") {
-        fmt.Println("banana が存在します")
-    }
-
-    // データの削除
-    if ht.Delete("orange") {
-        fmt.Println("orange を削除しました")
-    }
-
-    // ハッシュテーブルの表示
-    ht.Display()
-
-    // 負荷率の確認
-    fmt.Printf("負荷率: %.2f\n", ht.LoadFactor())
 }
 ```
 
-## 他のデータ構造との比較
+### パターン 3: オープンアドレス法（線形探査）
 
-| 操作           | ハッシュテーブル | 配列     | 連結リスト | 二分探索木 |
-| -------------- | ---------------- | -------- | ---------- | ---------- |
-| **検索**       | O(1)平均         | O(n)     | O(n)       | O(log n)   |
-| **挿入**       | O(1)平均         | O(1)末尾 | O(1)先頭   | O(log n)   |
-| **削除**       | O(1)平均         | O(n)     | O(1)先頭   | O(log n)   |
-| **順序保持**   | なし             | あり     | あり       | あり       |
-| **メモリ効率** | 中程度           | 高い     | 中程度     | 中程度     |
+配列の連続性を活かした実装方法です。
 
-ハッシュテーブルは、キーによる高速なデータアクセスが必要で、順序が重要でない場合に最適なデータ構造です。
+#### 特徴
+
+- **キャッシュ効率**: 連続したメモリアクセスで高いキャッシュ効率
+- **メモリ効率**: ポインタが不要で省メモリ
+- **シンプルな構造**: 配列のみを使用
+
+#### 注意点
+
+- **削除の複雑さ**: 削除マーカーや再配置が必要
+- **クラスタリング**: 要素が密集して性能劣化の原因となる
+- **負荷率制限**: 高い負荷率で急激に性能が劣化
+
+```go
+package main
+
+import "fmt"
+
+// エントリ状態
+type EntryState int
+
+const (
+    Empty EntryState = iota
+    Occupied
+    Deleted
+)
+
+// エントリ構造体
+type Entry struct {
+    Key   string
+    Value int
+    State EntryState
+}
+
+// ハッシュテーブル構造体
+type OpenAddressHashTable struct {
+    entries  []Entry
+    size     int
+    capacity int
+    deleted  int // 削除済みエントリ数
+}
+
+// 新しいハッシュテーブルを作成
+func NewOpenAddressHashTable(capacity int) *OpenAddressHashTable {
+    return &OpenAddressHashTable{
+        entries:  make([]Entry, capacity),
+        capacity: capacity,
+    }
+}
+
+// ハッシュ関数
+func (ht *OpenAddressHashTable) hash(key string) int {
+    hash := 0
+    for _, char := range key {
+        hash = hash*31 + int(char)
+    }
+    if hash < 0 {
+        hash = -hash
+    }
+    return hash % ht.capacity
+}
+
+// 線形探査で適切なスロットを探す
+func (ht *OpenAddressHashTable) findSlot(key string, forInsertion bool) int {
+    index := ht.hash(key)
+    deletedIndex := -1
+
+    for i := 0; i < ht.capacity; i++ {
+        currentIndex := (index + i) % ht.capacity
+        entry := &ht.entries[currentIndex]
+
+        if entry.State == Empty {
+            if forInsertion && deletedIndex != -1 {
+                return deletedIndex // 削除済みスロットを再利用
+            }
+            return currentIndex
+        }
+
+        if entry.State == Deleted && forInsertion && deletedIndex == -1 {
+            deletedIndex = currentIndex
+        }
+
+        if entry.State == Occupied && entry.Key == key {
+            return currentIndex
+        }
+    }
+
+    if forInsertion && deletedIndex != -1 {
+        return deletedIndex
+    }
+
+    return -1 // 見つからない
+}
+
+// 要素を挿入
+func (ht *OpenAddressHashTable) Put(key string, value int) bool {
+    // 負荷率チェック（削除済みエントリも考慮）
+    if float64(ht.size+ht.deleted)/float64(ht.capacity) > 0.7 {
+        ht.rehash()
+    }
+
+    index := ht.findSlot(key, true)
+    if index == -1 {
+        return false
+    }
+
+    entry := &ht.entries[index]
+    if entry.State == Occupied {
+        // 既存キーの値を更新
+        entry.Value = value
+    } else {
+        // 新しいエントリを追加
+        if entry.State == Deleted {
+            ht.deleted--
+        }
+        entry.Key = key
+        entry.Value = value
+        entry.State = Occupied
+        ht.size++
+    }
+
+    return true
+}
+
+// 要素を取得
+func (ht *OpenAddressHashTable) Get(key string) (int, bool) {
+    index := ht.findSlot(key, false)
+    if index == -1 || ht.entries[index].State != Occupied {
+        return 0, false
+    }
+
+    return ht.entries[index].Value, true
+}
+
+// 要素を削除
+func (ht *OpenAddressHashTable) Delete(key string) bool {
+    index := ht.findSlot(key, false)
+    if index == -1 || ht.entries[index].State != Occupied {
+        return false
+    }
+
+    ht.entries[index].State = Deleted
+    ht.size--
+    ht.deleted++
+
+    return true
+}
+
+// リハッシュ
+func (ht *OpenAddressHashTable) rehash() {
+    oldEntries := ht.entries
+    ht.capacity *= 2
+    ht.entries = make([]Entry, ht.capacity)
+    ht.size = 0
+    ht.deleted = 0
+
+    // 有効なエントリを再挿入
+    for _, entry := range oldEntries {
+        if entry.State == Occupied {
+            ht.Put(entry.Key, entry.Value)
+        }
+    }
+}
+
+func main() {
+    ht := NewOpenAddressHashTable(8)
+
+    ht.Put("apple", 100)
+    ht.Put("banana", 200)
+    ht.Put("orange", 300)
+
+    if value, exists := ht.Get("apple"); exists {
+        fmt.Printf("apple: %d\n", value)
+    }
+
+    fmt.Printf("delete banana: %t\n", ht.Delete("banana"))
+}
+```
+
+### パターン 4: オープンアドレス法（二次探査）
+
+線形探査のクラスタリング問題を軽減した実装です。
+
+#### 特徴
+
+- **クラスタリング軽減**: 線形探査より分散が改善される
+- **キャッシュ効率**: 連続メモリアクセスの利点を維持
+- **探査パターンの改善**: より均等な分散
+
+#### 注意点
+
+- **実装の複雑さ**: 探査関数が複雑になる
+- **テーブルサイズ制限**: 特定のサイズでないと全スロットを探査できない
+- **削除の問題**: 線形探査と同様の削除問題が存在
+
+```go
+package main
+
+import "fmt"
+
+// エントリ構造体（オープンアドレス法用）
+type QuadraticEntry struct {
+    Key   string
+    Value int
+    State EntryState
+}
+
+// ハッシュテーブル構造体（二次探査）
+type QuadraticHashTable struct {
+    entries  []QuadraticEntry
+    size     int
+    capacity int
+}
+
+// 新しいハッシュテーブルを作成（容量は2の累乗にする）
+func NewQuadraticHashTable(capacity int) *QuadraticHashTable {
+    // 容量を2の累乗に調整
+    actualCapacity := 1
+    for actualCapacity < capacity {
+        actualCapacity *= 2
+    }
+
+    return &QuadraticHashTable{
+        entries:  make([]QuadraticEntry, actualCapacity),
+        capacity: actualCapacity,
+    }
+}
+
+// ハッシュ関数
+func (ht *QuadraticHashTable) hash(key string) int {
+    hash := 0
+    for _, char := range key {
+        hash = hash*31 + int(char)
+    }
+    if hash < 0 {
+        hash = -hash
+    }
+    return hash % ht.capacity
+}
+
+// 二次探査でスロットを探す
+func (ht *QuadraticHashTable) findSlot(key string, forInsertion bool) int {
+    index := ht.hash(key)
+
+    for i := 0; i < ht.capacity; i++ {
+        // 二次探査: h(k) + i²
+        currentIndex := (index + i*i) % ht.capacity
+        entry := &ht.entries[currentIndex]
+
+        if entry.State == Empty || (entry.State == Deleted && forInsertion) {
+            return currentIndex
+        }
+
+        if entry.State == Occupied && entry.Key == key {
+            return currentIndex
+        }
+    }
+
+    return -1
+}
+
+// 要素を挿入
+func (ht *QuadraticHashTable) Put(key string, value int) bool {
+    if float64(ht.size)/float64(ht.capacity) > 0.5 {
+        ht.rehash()
+    }
+
+    index := ht.findSlot(key, true)
+    if index == -1 {
+        return false
+    }
+
+    entry := &ht.entries[index]
+    if entry.State != Occupied {
+        ht.size++
+    }
+
+    entry.Key = key
+    entry.Value = value
+    entry.State = Occupied
+
+    return true
+}
+
+// 要素を取得
+func (ht *QuadraticHashTable) Get(key string) (int, bool) {
+    index := ht.findSlot(key, false)
+    if index == -1 || ht.entries[index].State != Occupied {
+        return 0, false
+    }
+
+    return ht.entries[index].Value, true
+}
+
+// リハッシュ
+func (ht *QuadraticHashTable) rehash() {
+    oldEntries := ht.entries
+    ht.capacity *= 2
+    ht.entries = make([]QuadraticEntry, ht.capacity)
+    ht.size = 0
+
+    for _, entry := range oldEntries {
+        if entry.State == Occupied {
+            ht.Put(entry.Key, entry.Value)
+        }
+    }
+}
+
+func main() {
+    ht := NewQuadraticHashTable(8)
+
+    ht.Put("apple", 100)
+    ht.Put("banana", 200)
+
+    if value, exists := ht.Get("apple"); exists {
+        fmt.Printf("apple: %d\n", value)
+    }
+}
+```
+
+## 実装方法別メリット・デメリット比較
+
+| 実装方法                 | メリット                                                                                                                                                   | デメリット                                                                                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Go の組み込み map**    | - 最も簡潔で高性能<br>- Go runtime による最適化済み<br>- 自動メモリ管理<br>- 型安全性<br>- 標準ライブラリのサポート<br>- 豊富なドキュメントと事例          | - 内部実装をカスタマイズできない<br>- 並行安全性がない（sync.Map は必要）<br>- 反復順序が保証されない<br>- 特殊な要求（順序保持、カスタムハッシュ等）に対応困難 |
+| **sync.Map（並行安全）** | - 並行アクセス安全<br>- ロックフリーな読み取り最適化<br>- Go runtime による最適化<br>- 型安全性（interface{}だが実行時チェック）                           | - 型安全性が弱い（interface{}使用）<br>- 通常の map より重い<br>- 書き込み頻度が高い場合に性能劣化<br>- メモリ使用量が多い                                      |
+| **スライスチェイン法**   | - 実装が簡単で理解しやすい<br>- 動的サイズで柔軟性が高い<br>- Go の標準機能（append）を活用<br>- 削除操作が比較的簡単<br>- デバッグが容易                  | - メモリ断片化が発生しやすい<br>- スライス拡張時のコピーコスト<br>- 削除時の要素シフトコスト<br>- キャッシュ効率が中程度                                        |
+| **連結リストチェイン法** | - メモリ効率が良い（必要な分のみ使用）<br>- 動的サイズ変更が柔軟<br>- 削除がポインタ操作のみで高速<br>- クラスタリング問題なし<br>- 理論的に無制限の要素数 | - キャッシュ効率が低い（メモリが非連続）<br>- 各ノードのポインタオーバーヘッド<br>- 実装がやや複雑<br>- メモリアクセスパターンが予測困難                        |
+| **線形探査法**           | - 最高のキャッシュ効率（連続メモリアクセス）<br>- メモリ使用量が最小（ポインタ不要）<br>- シンプルな実装<br>- 高い局所性による高速アクセス                 | - クラスタリング問題で性能劣化<br>- 削除が複雑（削除マーカー必要）<br>- 負荷率制限が厳しい（0.7 以下推奨）<br>- 最悪時の性能劣化が大きい                        |
+| **二次探査法**           | - 線形探査よりクラスタリングが少ない<br>- キャッシュ効率を維持<br>- メモリ使用量が少ない<br>- より均等な分散                                               | - 実装が複雑<br>- テーブルサイズに制限（2 の累乗等）<br>- 削除が複雑<br>- 完全なクラスタリング解決は不可                                                        |
+| **二重ハッシュ法**       | - 最も均等な分散<br>- クラスタリング問題をほぼ解決<br>- 理論的に最適な探査パターン<br>- キャッシュ効率を維持                                               | - 実装が最も複雑<br>- 二つのハッシュ関数が必要<br>- 計算オーバーヘッドが大きい<br>- デバッグが困難<br>- ハッシュ関数の品質に依存                                |
+
+### 使用場面別推奨実装
+
+| 使用場面                       | 推奨実装                      | 理由                                 |
+| ------------------------------ | ----------------------------- | ------------------------------------ |
+| **一般的なアプリケーション**   | Go の組み込み map             | 簡潔、高性能、保守性が高い           |
+| **並行アクセスが必要**         | sync.Map                      | 並行安全性が保証される               |
+| **学習・教育目的**             | スライスチェイン法            | 理解しやすく、実装が簡単             |
+| **メモリ制約が厳しい**         | 線形探査法                    | 最小のメモリ使用量                   |
+| **高頻度の削除操作**           | 連結リストチェイン法          | 削除操作が効率的                     |
+| **最高のパフォーマンスが必要** | 線形探査法（低負荷率）        | 最高のキャッシュ効率                 |
+| **大量データの処理**           | 二次探査法または二重ハッシュ  | クラスタリングを避けて安定した性能   |
+| **リアルタイムシステム**       | 組み込み map または線形探査法 | 予測可能な性能特性                   |
+| **カスタムハッシュ関数が必要** | 自前実装                      | ハッシュ関数をカスタマイズ可能       |
+| **順序保持が必要**             | 別途順序管理 + map            | map と順序管理用の構造体を組み合わせ |
+
+# ハッシュテーブルの応用例
+
+1. **データベースインデックス**: 高速なレコード検索
+2. **キャッシュシステム**: Web ブラウザやアプリケーションのキャッシュ
+3. **辞書・マップ**: プログラミング言語の連想配列
+4. **セット実装**: 重複排除やメンバーシップテスト
+5. **ルーティングテーブル**: ネットワークルーティング
+6. **シンボルテーブル**: コンパイラでの変数・関数管理
+
+# 他のデータ構造との関係
+
+- **配列**: ハッシュテーブルの基礎となるデータ構造
+- **連結リスト**: チェイン法での衝突解決に使用
+- **バランス木**: ハッシュテーブルの代替として順序付きアクセスが可能
+- **セット**: ハッシュテーブルを使用して実装可能
+
+# 他のデータ構造との比較
+
+| 特徴                 | ハッシュテーブル | 配列           | 連結リスト     | バランス木     | キュー        | スタック        |
+| -------------------- | ---------------- | -------------- | -------------- | -------------- | ------------- | --------------- |
+| **検索**             | O(1)平均         | O(1)           | O(n)           | O(log n)       | 先頭のみ O(1) | トップのみ O(1) |
+| **挿入**             | O(1)平均         | O(1)末尾       | O(1)先頭       | O(log n)       | O(1)          | O(1)            |
+| **削除**             | O(1)平均         | O(n)           | O(1)           | O(log n)       | O(1)          | O(1)            |
+| **順序性**           | なし             | インデックス順 | 挿入順         | ソート順       | FIFO          | LIFO            |
+| **ランダムアクセス** | キーによる       | 可能           | 不可           | 不可           | 不可          | 不可            |
+| **メモリ効率**       | 中程度           | 高い           | 中程度         | 中程度         | 中程度        | 中程度          |
+| **用途**             | 高速検索・辞書   | 汎用データ格納 | 動的データ管理 | ソート済み管理 | タスク管理    | 一時的な管理    |
