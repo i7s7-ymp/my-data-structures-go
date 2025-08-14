@@ -1044,6 +1044,7 @@ func performanceComparison() {
 
 最も一般的かつ推奨される方法。
 キーを Set の要素とし、値をからの構造体 struct{} とする map を利用する。
+HashSet に相当し、各操作の平均計算量は O(1) となる。
 
 ```go
 // Set: ユニークな要素のコレクション
@@ -1078,8 +1079,82 @@ func (s *Set) Contains(value T) bool {
 
 特徴
 
-- 空の構造体（struct{}）はフィールドを持たないので、メモリ幅がゼロであり、値を格納するための追加のメモリを一切消費しない
-- map のキー一意性により、Set 　の要素の一意性を自然に保証できる
+- map のキーの一意性により、Set の要素の一意性を実現できる
+- map の値として意味のあるデータを持たせる必要はなく、struct{}が最もメモリ効率が良い
+  - 空の構造体（struct{}）はフィールドを持たないので、メモリ幅がゼロであり、値を格納するための追加のメモリを一切消費しない
+
+集合演算も map ベースの実装で実現可能。
+
+```go
+// 2つの Set の和集合を返す
+func (s *Set) Union(other *Set) *Set {
+    result := NewSet()
+    for key := range s.elements {
+        result.Add(key)
+    }
+    for key := range other.elements {
+        result.Add(key)
+    }
+    return result
+}
+
+// 2つの Set の積集合を返す
+func (s *Set) Intersection(other *Set) *Set {
+    result := NewSet()
+    for key := range s.elements {
+        if other.Contains(key) {
+            result.Add(key)
+        }
+    }
+    return result
+}
+
+```
+
+## サードパーティライブラリの活用（github.com/deckarep/golang-set）
+
+より高度な機能やスレッドセーフな実装が必要な場合、実績のあるサードパーティライブラリである github.com/deckarep/golang-set が有効。
+
+Python の Set 実装をモデルとした豊富な API を提供し、ジェネリクスをサポートしている。
+
+パフォーマンスを重視した非スレッドセーフ版と、並行処理に適したスレッドセーフ版の両方を提供している。
+
+```go
+package main
+
+import (
+    "fmt"
+    mapset "github.com/deckarep/golang-set/v2"
+)
+
+func main() {
+    required := mapset.NewSet[string]("cooking", "english", "math", "biology")
+    sciences := mapset.NewSet[string]("biology", "chemistry")
+
+    // 和集合
+    // 出力: "cooking", "english", "math", "biology", "chemistry"
+    allClasses := reequired.Union(sciences)
+    fmt.Println("All classes:", allClassees)
+
+    // 存在確認
+    fmt.Println("Is cooking a science?", sciences.Contains("cooking"))
+
+    // 差集合
+    // 出力: "cooking", "english", "math"
+    nonScience := required.Difference(sciences)
+    fmt.Println("Required but not science:", nonScience)
+
+    // 積集合
+    // 出力: "biology"
+    requiredScience := required.Intersect(sciences)
+    fmt.Println("Required science class:", requiredScience)
+
+    // 要素数
+    fmt.Println("Number of science classes:", sciences.Cardinality())
+
+}
+
+```
 
 # Set の応用例
 
