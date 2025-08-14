@@ -132,7 +132,8 @@ func (s *ImmutableSet[T]) Add(item T) *ImmutableSet[T] {
 
 ## Go 言語の組み込み関数と Set
 
-Go 言語には **Set 型は組み込まれていません** が、map を使って Set を実装するのが一般的です。
+Go 言語には **Set 型は組み込まれていない**。
+map を使って Set を実装するのが一般的。
 
 ### map を使った簡易 Set 実装
 
@@ -1038,6 +1039,47 @@ func performanceComparison() {
     fmt.Printf("Bit Set:  %v\n", bitSearchTime)
 }
 ```
+
+## mapstruct{}による実装
+
+最も一般的かつ推奨される方法。
+キーを Set の要素とし、値をからの構造体 struct{} とする map を利用する。
+
+```go
+// Set: ユニークな要素のコレクション
+type Set struct{
+    elements mapstruct{}
+}
+
+// NewSet: 新しいSetを作成する
+func NewSet() *Set{
+    return &Set{
+        elements: make(mapstructt{}),
+    }
+}
+
+// Add: 要素をSetに挿入する
+func (s *Set) Add(value T) {
+    s.elements[value] = struct{}{}
+}
+
+// Remove: Setから要素を削除
+func (s *Set) Remove(value T) {
+    delete(s.elements, value)
+}
+
+// Contains: 要素が Set に含まれているかどうか
+func (s *Set) Contains(value T) bool {
+    _, found := s.elements[value]
+    return found
+}
+
+```
+
+特徴
+
+- 空の構造体（struct{}）はフィールドを持たないので、メモリ幅がゼロであり、値を格納するための追加のメモリを一切消費しない
+- map のキー一意性により、Set 　の要素の一意性を自然に保証できる
 
 # Set の応用例
 
