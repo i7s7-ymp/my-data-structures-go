@@ -1,0 +1,378 @@
+# キュー（Queue）とは
+
+キューは、FIFO（First In, First Out：先入れ先出し）の原則に従ってデータを管理する線形データ構造。最初に追加された要素が最初に取り出される特性を持つ。
+
+**順序を保ちながら効率的にデータを処理できる。** タスクのスケジューリングやデータのストリーム処理など、順序が重要な場面で広く利用されます。
+
+## 特徴
+
+- **FIFO 原則**: 最初に入れたものが最初に出る
+- **単一アクセスポイント**: 先頭（取り出し）と末尾（追加）のみ操作可能
+- **動的サイズ**: 実行時にサイズを変更可能（実装方法による。固定長配列やリングバッファの場合は固定サイズ）
+- **順序性**: 要素の挿入順序をそのまま保持
+- **制限されたアクセス**: 中間要素への直接アクセス不可
+
+## 基本的な処理
+
+- **Enqueue**: キューの末尾に要素を追加
+- **Dequeue**: キューの先頭から要素を取り出し、削除する
+
+# 注意点
+
+1. **中間要素へのアクセスが非効率**: キューは先頭と末尾以外の要素に直接アクセスできないため、ランダムアクセスが必要な場合には不向きです。
+2. **サイズ制限**: 固定サイズのキューを使用する場合、サイズを超えるとエラーやデータの上書きが発生する可能性があります。
+
+# デック（Deque）とリングバッファ（Circular Buffer）
+
+## デック（Deque）とは
+
+デック（Deque: Double-Ended Queue）は、両端から要素の追加と削除が可能なデータ構造です。スタックやキューの拡張版とも言えます。
+
+### 特徴
+
+- **両端操作**: 要素の追加と削除が両端で可能。
+- **柔軟性**: スタック（LIFO）やキュー（FIFO）としても利用可能。
+- **用途**: タスクスケジューリング、キャッシュ管理、文字列処理など。
+
+[デック（Deque）について詳しくはこちら](deque.jp.md)
+
+## リングバッファ（Circular Buffer）とは
+
+リングバッファは、固定サイズの配列を使用してデータを循環的に管理するデータ構造です。配列の末尾が先頭に接続されるように設計されています。
+
+### 特徴
+
+- **固定サイズ**: メモリ使用量が一定。
+- **効率的なメモリ利用**: 配列を再利用するため、メモリ割り当てや解放のオーバーヘッドが少ない。
+- **用途**: 音声処理、ネットワークバッファ、リアルタイムシステムなど。
+
+[リングバッファ（Circular Buffer）について詳しくはこちら](circular-buffer.jp.md)
+
+# 実装方法
+
+## 配列・スライス・連結リストによる実装の比較
+
+以下は、通常のキューを配列、スライス、連結リストで実装した場合のメリットとデメリットを表にまとめたものです。
+
+| 実装方法                   | メリット                                                                                             | デメリット                                                                                                                                                                                                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| スライスをキューとして実装 | - 実装が簡単<br>- 動的サイズで柔軟に対応可能<br>- 他の操作（スタックなど）にも流用可能で汎用性が高い | - 先頭要素を削除すると全ての要素をシフトするため O(n) で非効率<br>- サイズ変更時にメモリ再割り当てが発生し、オーバーヘッドが増加<br>- スライスの切り取り操作では元のスライスのメモリが解放されず、メモリの断片化が発生する可能性<br>- 固定サイズのキューには不向き |
+| 配列                       | - メモリが連続しておりキャッシュ効率が高い<br>- メモリ管理が簡単                                     | - サイズ変更不可、事前にサイズを決定する必要がある<br>- サイズ超過時にオーバーフローが発生る                                                                                                                                                                       |
+| スライス                   | - 動的にサイズ変更可能<br>- 標準ライブラリを活用でき実装が簡単                                       | - サイズ変更時にメモリ再割り当てが発生し、オーバーヘッドが増加<br>- 頻繁な再割り当てでパフォーマンス低下                                                                                                                                                           |
+| 連結リスト                 | - サイズが動的に変化しメモリ効率が良い<br>- 要素の挿入・削除が一定時間で可能（O(1)）                 | メモリが非連続でキャッシュ効率が低い<br>- 各ノードにポインタを持つためメモリ使用量が増加                                                                                                                                                                           |
+
+## スライスをキューのように扱う実装
+
+Go にはキュー専用の組み込み型はありませんが、スライスを直接使用してキューのように扱うことができます。
+
+- **スライスを使用**: キューのデータを保持するためにスライスを使用します。Go の標準ライブラリの append を活用して要素を末尾に追加します。
+- **動的サイズ**:スライスは動的にサイズを変更できるため、事前にサイズを決定する必要がありません。サイズ変更時に新しいメモリ領域を確保するため、柔軟性が高いですが、オーバーヘッドが発生する場合があります。
+- **先頭要素の削除**:Dequeue 操作ではスライスの切り取り（slice[1:]）を使用します。ただし、スライスの先頭要素を削除する際に内部的にすべての要素をシフトするため、計算量が O(n) となります。
+- **メモリ効率**:スライスの切り取り操作では元のスライスのメモリが解放されないため、メモリの断片化が発生する可能性があります。長時間動作するプログラムでは、メモリ使用量に注意が必要です。
+- **エラーハンドリング**:キューが空の場合に Dequeue や Peek 操作を呼び出すとエラーになるため、事前に空かどうかを確認する必要があります。
+- **計算量**:Enqueue: O(1)（append を使用）。Dequeue: O(n)（先頭要素の削除時にシフトが発生）。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    // キューとして使用するスライス
+    queue := []int{}
+
+    // Enqueue操作
+    queue = append(queue, 10) // キューに10を追加
+    queue = append(queue, 20) // キューに20を追加
+    queue = append(queue, 30) // キューに30を追加
+
+    fmt.Println("キューの状態:", queue) // キューの状態: [10 20 30]
+
+    // Dequeue操作
+    if len(queue) > 0 {
+        front := queue[0] // 先頭要素を取得
+        queue = queue[1:] // 先頭要素を削除
+        fmt.Println("取り出した要素:", front) // 取り出した要素: 10
+    }
+
+    // 現在のキューの状態
+    fmt.Println("キューの状態:", queue) // キューの状態: [20 30]
+}
+```
+
+## 配列を使用したキューの実装
+
+- **固定サイズ**: 配列を使用するため、キューのサイズは固定される。事前に適切なサイズを決定する必要がある。
+- **インデックス管理**: 配列の先頭（head）と末尾（tail）をインデックスで管理する。
+- **循環構造**: 配列の末尾が先頭に接続されるように設計することで、メモリを効率的に利用可能（リングバッファとして実装）。
+- **エラーハンドリング**: キューが満杯または空の場合に適切なエラー処理を実装。
+
+```go
+package main
+
+import "fmt"
+
+// キュー構造体
+type ArrayQueue struct {
+    data     []int
+    head     int
+    tail     int
+    capacity int
+    size     int
+}
+
+// 新しいキューを作成
+func NewArrayQueue(capacity int) *ArrayQueue {
+    return &ArrayQueue{
+        data:     make([]int, capacity),
+        capacity: capacity,
+    }
+}
+
+// Enqueue: キューに要素を追加
+func (q *ArrayQueue) Enqueue(value int) bool {
+    if q.size == q.capacity {
+        return false // キューが満杯
+    }
+    q.data[q.tail] = value
+    q.tail = (q.tail + 1) % q.capacity
+    q.size++
+    return true
+}
+
+// Dequeue: キューから要素を取り出す
+func (q *ArrayQueue) Dequeue() (int, bool) {
+    if q.size == 0 {
+        return 0, false // キューが空
+    }
+    value := q.data[q.head]
+    q.head = (q.head + 1) % q.capacity
+    q.size--
+    return value, true
+}
+
+// Peek: キューの先頭要素を参照
+func (q *ArrayQueue) Peek() (int, bool) {
+    if q.size == 0 {
+        return 0, false
+    }
+    return q.data[q.head], true
+}
+
+func main() {
+    queue := NewArrayQueue(5)
+
+    // Enqueue操作
+    queue.Enqueue(10)
+    queue.Enqueue(20)
+    queue.Enqueue(30)
+
+    // Peek操作
+    if front, ok := queue.Peek(); ok {
+        fmt.Println("先頭要素:", front) // 先頭要素: 10
+    }
+
+    // Dequeue操作
+    for i := 0; i < 3; i++ {
+        if value, ok := queue.Dequeue(); ok {
+            fmt.Println("取り出した要素:", value)
+        }
+    }
+}
+```
+
+## スライスを使用したキューの実装
+
+スライスを用いて実装荒れることが多い。
+
+- **スライスを使用**: キューのデータを保持するためにスライスを使用。
+- **動的サイズ**: スライスの動的サイズ変更機能を活用し、柔軟にサイズを変更可能。
+- **Enqueue の実装**: 組み込みの `append` 関数を利用し、スライスの末尾に要素を追加する。
+- **Dequeue の実装**: スライスの切り取り（slice[1:]）によって、スライスの戦闘用尾を削除する。
+- **メモリ効率の注意**: スライスの切り取り操作では元のスライスのメモリが解放されないため、メモリの断片化が発生する可能性がある（後述）。
+
+```go
+package main
+
+import "fmt"
+
+// キュー構造体
+type Queue struct {
+    data []int
+}
+
+// Enqueue: キューに要素を追加
+func (q *Queue) Enqueue(value int) {
+    q.data = append(q.data, value)
+}
+
+// Dequeue: キューから要素を取り出す
+func (q *Queue) Dequeue() (int, bool) {
+    if len(q.data) == 0 {
+        return 0, false // キューが空の場合
+    }
+    value := q.data[0]
+    q.data = q.data[1:]
+    return value, true
+}
+
+// Peek: キューの先頭要素を参照
+func (q *Queue) Peek() (int, bool) {
+    if len(q.data) == 0 {
+        return 0, false // キューが空の場合
+    }
+    return q.data[0], true
+}
+
+// IsEmpty: キューが空かどうかを確認
+func (q *Queue) IsEmpty() bool {
+    return len(q.data) == 0
+}
+
+// Size: キューの要素数を取得
+func (q *Queue) Size() int {
+    return len(q.data)
+}
+
+func main() {
+    queue := &Queue{}
+
+    // Enqueue操作
+    queue.Enqueue(10)
+    queue.Enqueue(20)
+    queue.Enqueue(30)
+
+    // Peek操作
+    if front, ok := queue.Peek(); ok {
+        fmt.Println("先頭要素:", front) // 先頭要素: 10
+    }
+
+    // Dequeue操作
+    for !queue.IsEmpty() {
+        if value, ok := queue.Dequeue(); ok {
+            fmt.Println("取り出した要素:", value)
+        }
+    }
+
+    // キューが空か確認
+    fmt.Println("キューが空:", queue.IsEmpty()) // キューが空: true
+}
+```
+
+## 連結リストを用いた動的サイズのキューの実装
+
+- **動的サイズ**: 連結リストを使用することで、キューのサイズを動的に変更可能。
+- **先頭と末尾の管理**: キューの先頭（head）と末尾（tail）をポインタで管理する。
+- **効率的な操作**: 要素の追加（Enqueue）と削除（Dequeue）は O(1) で実行可能。
+- **メモリ効率**: 必要な分だけメモリを使用するため、メモリの無駄が少ないが、各ノードにポインタを持つためメモリ使用量が増える。
+- **ポインタ管理**: ノード間の接続をポインタで管理するため、実装がやや複雑。
+
+```go
+package main
+
+import "fmt"
+
+// ノード構造体
+type Node struct {
+    value int
+    next  *Node
+}
+
+// キュー構造体
+type LinkedListQueue struct {
+    head *Node
+    tail *Node
+    size int
+}
+
+// Enqueue: キューに要素を追加
+func (q *LinkedListQueue) Enqueue(value int) {
+    newNode := &Node{value: value}
+    if q.tail != nil {
+        q.tail.next = newNode
+    }
+    q.tail = newNode
+    if q.head == nil {
+        q.head = newNode
+    }
+    q.size++
+}
+
+// Dequeue: キューから要素を取り出す
+func (q *LinkedListQueue) Dequeue() (int, bool) {
+    if q.head == nil {
+        return 0, false
+    }
+    value := q.head.value
+    q.head = q.head.next
+    if q.head == nil {
+        q.tail = nil
+    }
+    q.size--
+    return value, true
+}
+
+// Peek: キューの先頭要素を参照
+func (q *LinkedListQueue) Peek() (int, bool) {
+    if q.head == nil {
+        return 0, false
+    }
+    return q.head.value, true
+}
+
+// IsEmpty: キューが空かどうかを確認
+func (q *LinkedListQueue) IsEmpty() bool {
+    return q.size == 0
+}
+
+// Size: キューの要素数を取得
+func (q *LinkedListQueue) Size() int {
+    return q.size
+}
+
+func main() {
+    queue := &LinkedListQueue{}
+
+    // Enqueue操作
+    queue.Enqueue(10)
+    queue.Enqueue(20)
+    queue.Enqueue(30)
+
+    // Peek操作
+    if front, ok := queue.Peek(); ok {
+        fmt.Println("先頭要素:", front) // 先頭要素: 10
+    }
+
+    // Dequeue操作
+    for !queue.IsEmpty() {
+        if value, ok := queue.Dequeue(); ok {
+            fmt.Println("取り出した要素:", value)
+        }
+    }
+
+    // キューが空か確認
+    fmt.Println("キューが空:", queue.IsEmpty()) // キューが空: true
+}
+```
+
+## スライスを用いた実装時の注意点
+
+### dequeue によるメモリリーク
+
+大規模で長い間データを保存するようなキューをスライスで実装するのは注意が必要。s = s[1:] という dequeue 操作を実行すると、先頭のポインタは一つ進むが、基底配列のサイズは変化しない。dequeue された要素が締めていたメモリは解放されずに基底配列によって参照され続ける。要素がポインタ型の場合、参照先のオブジェクトもガベージコレクションの対象にならないため、メモリリークの原因となりうる。
+
+### append によるパフォーマンスの低下
+
+上記の通り、dequeue を行なっても基底配列のメモリ領域は占有されたままになる。append (enqueue) 操作によって、容量不足による新規の基底配列確保と全要素のコピーが行われると、さらに大きい要素数のメモリ領域が確保される。また、enqueue 操作自体は O(1) だが、enqueue 操作でメモリの再確保が行われると全件コピーによって O(n)の時間が必要になる。
+
+多数の dequeue, enqueue が繰り返されるユースケースでは、メモリコピーのコストが積み重なり、キューのパフォーマンスが低下する。
+
+高性能なキュー実装には、リングバッファのようなメモリコピーを行わないデータ構造を用いる必要がある。
+
+# キューの応用例
+
+1. **タスクスケジューリング**: CPU のタスク管理やプロセススケジューリングで使用。
+2. **データストリーム処理**: データの順序を保ちながら処理する。
+3. **幅優先探索（BFS）**: グラフや木構造の探索アルゴリズムで、次に訪れるべきノードを管理するためにキューを利用。
+4. **プリントジョブ管理**: プリンタのジョブキュー。
+5. **データバッファリング**: ネットワーク通信において、送信側と受信側の処理速度の差を吸収するために、送受信されるデータパケットを一時的にキューに保存する。
